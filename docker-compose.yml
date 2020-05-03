@@ -1,0 +1,31 @@
+version: '3.4'
+services:
+  workspace-vnc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # TODO: please enable this when you build the image inside BMW network
+      network: host
+      args:
+        HTTP_PROXY: ${http_proxy}
+        http_proxy: ${http_proxy}
+        HTTPS_PROXY: ${https_proxy}
+        https_proxy: ${https_proxy}
+        NO_PROXY: ${no_proxy}
+        no_proxy: ${no_proxy}
+    image: anaconda/point-cloud-analysis:latest
+    container_name: point_cloud_analytics_workspace
+    volumes:
+      # assignments:
+      - ${PWD}/workspace/assignments:/workspace/assignments  
+      # data volume:
+      - ${PWD}/workspace/data:/workspace/data
+    ports:
+      # standard vnc client:
+      - 45901:5900
+      # supervisord admin:
+      - 49001:9001
+    environment:
+      - http_proxy=${http_proxy} 
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}

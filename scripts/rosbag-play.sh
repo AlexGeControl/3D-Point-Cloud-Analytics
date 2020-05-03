@@ -1,0 +1,1 @@
+docker exec -it 12rvizrecording_workspace_1 bash -c "source /workspace/bazel/setup.sh; rosbag play --clock /data/rosbag/2019-11-15_CJ-006_2019.47_ROUND_V716212_MAX_Integration_FT-Bingo_OpenDriveMAP/2019-11-15_18-50-45/*.bag"

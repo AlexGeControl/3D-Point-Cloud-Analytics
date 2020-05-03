@@ -1,0 +1,5 @@
+*
+!.gitignore
+!get-modelnet40.sh
+!sample-modelnet40.py
+!download-kitti.sh
