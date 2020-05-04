@@ -40,6 +40,7 @@ class KMeans(object):
             Training set as N-by-D numpy.ndarray
 
         """
+        # TODO 01: implement KMeans fit 
         # get input size:
         N, D = data.shape
         # format as pandas dataframe:
@@ -56,7 +57,7 @@ class KMeans(object):
         self.__centroids = self.__get_init_centroid_random(data)
 
         # iterate:
-        for iter in range(self.__max_iter):
+        for i in range(self.__max_iter):
             # expectation:
             __data.cluster = __data.apply(
                 lambda x: KMeans.__assign(x[:-1].values, self.__centroids),
@@ -75,7 +76,7 @@ class KMeans(object):
 
             # early stopping check:
             if squared_diff <= self.__tolerance:
-                print(f'[KMeans - Fit]: early stopping with squared centroids diff {squared_diff:.2f} at iteration {iter:03d}')
+                print(f'[KMeans - Fit]: early stopping with squared centroids diff {squared_diff:.2f} at iteration {i:03d}')
                 break
 
     def predict(self, data):
@@ -88,6 +89,7 @@ class KMeans(object):
             Testing set as N-by-D numpy.ndarray
 
         """
+        # TODO 02: implement KMeans predict
         N, _ = data.shape
 
         result = np.asarray(
