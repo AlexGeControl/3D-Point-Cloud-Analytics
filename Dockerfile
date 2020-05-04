@@ -7,13 +7,15 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV HOME=/root SHELL=/bin/bash
 
 # install apt-fast:
+ADD ${PWD}/image/etc/apt/sources.list.d/aliyun.list /etc/apt/sources.list.d/
 RUN apt-get update --fix-missing && \
-    apt-get -y install software-properties-common && \
+    apt-get -y install software-properties-common axel aria2 && \
     add-apt-repository ppa:apt-fast/stable && \
     apt-get update --fix-missing && \
     apt-get -y install apt-fast
 
 # install packages:
+ADD ${PWD}/image/etc/apt-fast.conf /etc/apt-fast.conf
 RUN apt-fast update --fix-missing && \
     apt-fast install -y --no-install-recommends --allow-unauthenticated \
         curl grep sed dpkg wget bzip2 ca-certificates \
@@ -36,7 +38,7 @@ RUN apt-fast update --fix-missing && \
     rm -rf /var/lib/apt/lists/*
 
 # install anaconda:
-RUN wget --quiet https://repo.anaconda.com/archive/Anaconda3-5.3.0-Linux-x86_64.sh -O ~/anaconda.sh && \
+RUN wget https://repo.anaconda.com/archive/Anaconda3-5.3.0-Linux-x86_64.sh -O ~/anaconda.sh && \
     /bin/bash ~/anaconda.sh -b -p /opt/conda && \
     rm ~/anaconda.sh && \
     ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
