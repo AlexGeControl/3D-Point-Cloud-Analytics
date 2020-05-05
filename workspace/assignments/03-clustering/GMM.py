@@ -135,7 +135,7 @@ class GMM(object):
         value_counts = pd.Series(category).value_counts()
         self.__priori = np.asarray(
             [value_counts[k]/N for k in range(self.__K)]
-        ).reshape((3, 1))
+        ).reshape((self.__K, 1))
 
 
     def __get_expectation(self, data):

@@ -4,6 +4,7 @@
 
 import numpy as np
 import pandas as pd
+import random
 import matplotlib.pyplot as plt
 
 class KMeans(object):
@@ -54,7 +55,7 @@ class KMeans(object):
         # get tolerance:
         self.__tolerance = KMeans.__tolerance(data, self.__tolerance)
         # get initial centroids:
-        self.__centroids = self.__get_init_centroid_random(data)
+        self.__centroids = self.__get_init_centroid_kmeanspp(data)
 
         # iterate:
         for i in range(self.__max_iter):
@@ -122,7 +123,7 @@ class KMeans(object):
 
         return centroids
 
-    def __get_init_centroid_kmeans_pp(self, data):
+    def __get_init_centroid_kmeanspp(self, data):
         """
         Get initial centroids using KMeans++ selection
 
@@ -132,7 +133,28 @@ class KMeans(object):
             Training set as N-by-D numpy.ndarray
 
         """
-        pass
+        N, _ = data.shape
+
+        # select the first centroid by random choice:
+        centroids = data[np.random.choice(np.arange(N), size=1, replace=False)]
+
+        # for the remaining centroids, select by prob based on minimum distance to existing centroids:
+        for _ in range(1, self.__K):
+            # find minimum distance to existing centroids for each poit
+            distances = np.asarray(
+                [
+                    np.min(np.linalg.norm(d - centroids, axis=1))**2 for d in data
+                ]
+            )
+            # generate cumulative probability:
+            probs = distances / np.sum(distances)
+            cum_probs = np.cumsum(probs)
+            # select new centroid:
+            centroids = np.vstack(
+                (centroids, data[np.searchsorted(cum_probs, random.random())])
+            )
+        
+        return centroids
 
     @staticmethod
     def __assign(data, centroids):

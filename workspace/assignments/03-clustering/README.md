@@ -6,11 +6,7 @@ Python implementation of KMeans++, GMM and Spectral Clustering for clustering al
 
 ## Homework Solution
 
-### 1. Get Clustering Dataset 
-
-TBD
-
-### 2. KMeans
+### KMeans
 
 The implementation, which follows the practice of Python OOAD, is available at (click to follow the link) **[/workspace/assignments/03-clustering/KMeans.py](KMeans.py)**
 
@@ -103,7 +99,7 @@ The result clustering is as follows:
 
 <img src="doc/01-kmeans-testcase.png" alt="KMeans Testcase" width="100%">
 
-### 3. GMM
+### GMM
 
 The implementation, which follows the practice of Python OOAD, is available at (click to follow the link) **[/workspace/assignments/03-clustering/GMM.py](GMM.py)**
 
@@ -193,7 +189,7 @@ Next comes the logic for **predict**. Here category is estimated using Maximum-A
         """
         # get posteriori:
         self.__get_expectation(data)
-        
+
         result = np.argmax(self.__posteriori, axis = 0)
 
         return result 
@@ -216,17 +212,19 @@ The result clustering is as follows:
 
 ---
 
-#### Benchmark
+### Benchmark
 
-To run the test cases, go to **/workspace/assignments/02-nearest-neighbor/** and run the following commands:
+To run the test cases, go to **/workspace/assignments/03-clustering/** and run the following commands:
 
 ```bash
-# perform benchmark analysis on KITTI:
-python benchmark.py -i /workspace/data/kitti/2011_09_26/2011_09_26_drive_0005_sync/velodyne_points/data/
+# go to HW3 working dir:
+cd /workspace/assignments/03-clustering
+# activate environment:
+source activate point-cloud
+# clustering algorithm benchmark:
+./compare_cluster.py
 ```
 
-The results are as follows, which indicates the implementation is correct
+The results are as follows
 
-<img src="doc/02-benchmark.png" alt="Benchmark">
-
-Using Python KDTree is slightly faster than OCTree. I also noticed that sometimes the use of contains could lower the performance. I will try to further debug during the remaining time.
+<img src="doc/clustering-benchmark.png" alt="Benchmark" width="100%">
