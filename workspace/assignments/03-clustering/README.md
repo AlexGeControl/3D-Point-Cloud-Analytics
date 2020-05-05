@@ -212,6 +212,78 @@ The result clustering is as follows:
 
 ---
 
+### Spectral Clustering
+
+The implementation, which follows the practice of Python OOAD, is available at (click to follow the link) **[/workspace/assignments/03-clustering/SpectralClustering.py](SpectralClustering.py)**
+
+First is the code for **fit**.
+
+```python
+    def fit(self, data):
+        """
+        Estimate the K centroids
+
+        Parameters
+        ----------
+        data: numpy.ndarray
+            Training set as N-by-D numpy.ndarray
+
+        """
+        # TODO 01: implement SpectralClustering fit 
+        from sklearn.neighbors import kneighbors_graph
+        from sklearn.metrics import pairwise_distances
+        from scipy.sparse import csgraph
+        from scipy.sparse import linalg
+
+        N, _ = data.shape
+
+        # create affinity matrix -- kNN for connectivity:
+        A = pairwise_distances(data)
+        # TODO: use better gamma estimation
+        gamma = np.var(A)/4
+        A = np.exp(-A**2/(2*gamma**2))
+        # get laplacian matrix:
+        L = csgraph.laplacian(A, normed=True)
+        # spectral decomposition:
+        eigval, eigvec = np.linalg.eig(L)
+        # get features:
+        idx_k_smallest = np.where(eigval < np.partition(eigval, self.__K)[self.__K])
+        features = np.hstack([eigvec[:, i] for i in idx_k_smallest])
+        # cluster using KMeans++
+        k_means = KMeans(init='k-means++', n_clusters=self.__K, tol=1e-6)
+        k_means.fit(features)
+        # get cluster ids:
+        self.__labels = k_means.labels_
+```
+
+Next comes the logic for **predict**. The implementation follows the sklearn practice and just returns the *labels_* attribute for benchmark.
+
+```python
+    def predict(self, data):
+        """
+        Get cluster labels
+
+        """
+        return np.copy(self.__labels)
+```
+
+To run the test case, launch the docker environment and go to **/workspace/assignments/03-clustering/** and run the following commands:
+
+```bash
+# go to HW3 working dir:
+cd /workspace/assignments/03-clustering
+# activate environment:
+source activate point-cloud
+# SpectralClustering:
+./SpectralClustering.py
+```
+
+The result clustering is as follows:
+
+<img src="doc/03-spectralclustering-testcase.png" alt="Spectral Clustering Testcase" width="100%">
+
+---
+
 ### Benchmark
 
 To run the test cases, go to **/workspace/assignments/03-clustering/** and run the following commands:
