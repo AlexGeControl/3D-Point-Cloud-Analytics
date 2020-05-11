@@ -6,297 +6,201 @@ Python implementation of Ground Plane Estimation & Surrounding Object Segmentati
 
 ## Homework Solution
 
-### KMeans
+### Ground Segmentation
 
-The implementation, which follows the practice of Python OOAD, is available at (click to follow the link) **[/workspace/assignments/03-clustering/KMeans.py](KMeans.py)**
+The implementation is available at (click to follow the link) **[/workspace/assignments/04-model-fitting/clustering.py](clustering.py)**
 
-First is the code for **fit**. Here the training set is further formatted as Pandas dataframe for easy analytics inspired by corresponding map-reduce implementation.
+The whole workflow consists of 3 steps: 
+
+* Pre-Processing: Using surface normal to filter lidar measurements
+* Plane Fitting: PLANE RANSAC from PCL
+* Post-Processing: Generate segmented ground by point's distance to fitted ground plane
 
 ```python
-    def fit(self, data):
-        """
-        Estimate the K centroids
+def ground_segmentation(data):
+    """
+    Segment ground plane from Velodyne measurement
 
-        Parameters
-        ----------
-        data: numpy.ndarray
-            Training set as N-by-D numpy.ndarray
+    Parameters
+    ----------
+    data: numpy.ndarray
+        Velodyne measurements as N-by-3 numpy.ndarray
 
-        """
-        # get input size:
-        N, D = data.shape
-        # format as pandas dataframe:
-        __data = pd.DataFrame(
-            data = data,
-            index = np.arange(N),
-            columns = [f'x{i:03d}' for i in range(D)]
+    Returns
+    ----------
+    segmented_cloud: numpy.ndarray
+        Segmented surrounding objects as N-by-3 numpy.ndarray
+    segmented_ground: numpy.ndarray
+        Segmented ground as N-by-3 numpy.ndarray
+
+    """
+    # TODO 01 -- ground segmentation
+    N, _ = data.shape
+
+    #
+    # pre-processing: filter by surface normals
+    #
+    # first, filter by surface normal
+    pcd_original = o3d.geometry.PointCloud()
+    pcd_original.points = o3d.utility.Vector3dVector(data)
+    pcd_original.estimate_normals(
+        search_param=o3d.geometry.KDTreeSearchParamHybrid(
+            radius=5.0, max_nn=9
         )
-        __data['cluster'] = 0
+    )
 
-        # get tolerance:
-        self.__tolerance = KMeans.__tolerance(data, self.__tolerance)
-        # get initial centroids:
-        self.__centroids = self.__get_init_centroid_random(data)
+    # keep points whose surface normal is approximate to z-axis for ground plane segementation:
+    normals = np.asarray(pcd_original.normals)
+    angular_distance_to_z = np.abs(normals[:, 2])
+    idx_downsampled = angular_distance_to_z > np.cos(np.pi/6)
+    downsampled = data[idx_downsampled]
 
-        # iterate:
-        for iter in range(self.__max_iter):
-            # expectation:
-            __data.cluster = __data.apply(
-                lambda x: KMeans.__assign(x[:-1].values, self.__centroids),
-                axis = 1
-            )
-            # maximization:
-            new_centroids = __data.groupby(['cluster']).mean().values
-            
-            # evaluate squared diff:
-            diff = (new_centroids - self.__centroids).ravel()
-            squared_diff = np.dot(diff, diff)
-            
+    #
+    # plane segmentation with RANSAC
+    #
+    # ground segmentation using PLANE RANSAC from PCL:
+    cloud = pcl.PointCloud()
+    cloud.from_array(downsampled)
+    ground_segmenter = GroundSegmenter(cloud=cloud)
+    inliers, model = ground_segmenter.segment()
 
-            # update centroids:
-            self.__centroids = new_centroids
+    # 
+    # post-processing: get ground output by distance to segemented plane
+    # 
+    distance_to_ground = np.abs(
+        np.dot(data,np.asarray(model[:3])) + model[3]
+    )
 
-            # early stopping check:
-            if squared_diff <= self.__tolerance:
-                print(f'[KMeans - Fit]: early stopping with squared centroids diff {squared_diff:.2f} at iteration {iter:03d}')
-                break
+    idx_ground = distance_to_ground <= ground_segmenter.get_max_distance()
+    idx_segmented = np.logical_not(idx_ground)
+
+    segmented_cloud = data[idx_segmented]
+    segmented_ground = data[idx_ground]
+
+    print(
+        f'[Ground Segmentation]: \n\tnum. origin measurements: {N}\n\tnum. segmented cloud: {segmented_cloud.shape[0]}\n\tnum. segmented ground: {segmented_ground.shape[0]}\n'
+    )
+    return segmented_cloud, segmented_ground
 ```
-
-Next comes the logic for **predict**. Here brute-force method based on numpy intrinsic parallel computing is used for simplicity.
-
-```python
-    def predict(self, data):
-        """
-        Classify input data
-
-        Parameters
-        ----------
-        data: numpy.ndarray
-            Testing set as N-by-D numpy.ndarray
-
-        """
-        N, _ = data.shape
-
-        result = np.asarray(
-            [KMeans.__assign(data[i], self.__centroids) for i in range(N)]
-        )
-
-        return result    
-```
-
-To run the test case, launch the docker environment and go to **/workspace/assignments/03-clustering/** and run the following commands:
-
-```bash
-# go to HW3 working dir:
-cd /workspace/assignments/03-clustering
-# activate environment:
-source activate point-cloud
-# KMeans:
-./KMeans.py
-```
-
-The result clustering is as follows:
-
-<img src="doc/01-kmeans-testcase.png" alt="KMeans Testcase" width="100%">
-
-### GMM
-
-The implementation, which follows the practice of Python OOAD, is available at (click to follow the link) **[/workspace/assignments/03-clustering/GMM.py](GMM.py)**
-
-First is the code for **fit**. Here the GMM params are initialized using KMeans++. GMM is in essence a local optimization algorithm thus a good initialization does matter.
-
-```python
-    def fit(self, data):
-        """
-        Estimate GMM parameters
-
-        Parameters
-        ----------
-        data: numpy.ndarray
-            Training set as N-by-D numpy.ndarray
-
-        """
-        N, _ = data.shape
-
-        # init GMM params:
-        self.__init_kmeans(data)
-
-        # iterate:
-        for i in range(self.__max_iter):
-            # expectation:
-            self.__get_expectation(data)
-
-            # get effective count:
-            effective_count = np.sum(self.__posteriori, axis=1)
-
-            # maximization:
-            self.__mu = np.asarray(
-                [np.dot(self.__posteriori[k], data)/effective_count[k] for k in range(self.__K)]
-            )
-            self.__cov = np.asarray(
-                [
-                    np.dot(
-                        (data - self.__mu[k]).T, np.dot(np.diag(self.__posteriori[k].ravel()), data - self.__mu[k])
-                    )/effective_count[k] for k in range(self.__K)
-                ]
-            )
-            self.__priori = (effective_count / N).reshape((self.__K, 1))
-
-    def __init_kmeans(self, data):
-        """
-        Set initial GMM params with K-Means initialization
-
-        Parameters
-        ----------
-        data: numpy.ndarray
-            Training set as N-by-D numpy.ndarray
-
-        """
-        N, _ = data.shape
-
-        # init kmeans:
-        k_means = KMeans(init='k-means++', n_clusters=self.__K)
-        k_means.fit(data)
-        category = k_means.labels_
-
-        # init posteriori:
-        self.__posteriori = np.zeros((self.__K, N))
-        # init mu:
-        self.__mu = k_means.cluster_centers_
-        # init covariances
-        self.__cov = np.asarray(
-            [np.cov(data[category == k], rowvar=False) for k in range(self.__K)]
-        )
-        # init priori:
-        value_counts = pd.Series(category).value_counts()
-        self.__priori = np.asarray(
-            [value_counts[k]/N for k in range(self.__K)]
-        ).reshape((3, 1))
-```
-
-Next comes the logic for **predict**. Here category is estimated using Maximum-A-Posteriori(MAP).
-
-```python
-    def predict(self, data):
-        """
-        Classify input data
-
-        Parameters
-        ----------
-        data: numpy.ndarray
-            Testing set as N-by-D numpy.ndarray
-
-        """
-        # get posteriori:
-        self.__get_expectation(data)
-
-        result = np.argmax(self.__posteriori, axis = 0)
-
-        return result 
-```
-
-To run the test case, launch the docker environment and go to **/workspace/assignments/03-clustering/** and run the following commands:
-
-```bash
-# go to HW3 working dir:
-cd /workspace/assignments/03-clustering
-# activate environment:
-source activate point-cloud
-# GMM:
-./GMM.py
-```
-
-The result clustering is as follows:
-
-<img src="doc/02-gmm-testcase.png" alt="GMM Testcase" width="100%">
 
 ---
 
-### Spectral Clustering
+### Surrouding Object Segmentation
 
-The implementation, which follows the practice of Python OOAD, is available at (click to follow the link) **[/workspace/assignments/03-clustering/SpectralClustering.py](SpectralClustering.py)**
+The implementation is available at (click to follow the link) **[/workspace/assignments/04-model-fitting/clustering.py](clustering.py)**
 
-First is the code for **fit**.
-
-```python
-    def fit(self, data):
-        """
-        Estimate the K centroids
-
-        Parameters
-        ----------
-        data: numpy.ndarray
-            Training set as N-by-D numpy.ndarray
-
-        """
-        # TODO 01: implement SpectralClustering fit 
-        from sklearn.neighbors import kneighbors_graph
-        from sklearn.metrics import pairwise_distances
-        from scipy.sparse import csgraph
-        from scipy.sparse import linalg
-
-        N, _ = data.shape
-
-        # create affinity matrix -- kNN for connectivity:
-        A = pairwise_distances(data)
-        # TODO: use better gamma estimation
-        gamma = np.var(A)/4
-        A = np.exp(-A**2/(2*gamma**2))
-        # get laplacian matrix:
-        L = csgraph.laplacian(A, normed=True)
-        # spectral decomposition:
-        eigval, eigvec = np.linalg.eig(L)
-        # get features:
-        idx_k_smallest = np.where(eigval < np.partition(eigval, self.__K)[self.__K])
-        features = np.hstack([eigvec[:, i] for i in idx_k_smallest])
-        # cluster using KMeans++
-        k_means = KMeans(init='k-means++', n_clusters=self.__K, tol=1e-6)
-        k_means.fit(features)
-        # get cluster ids:
-        self.__labels = k_means.labels_
-```
-
-Next comes the logic for **predict**. The implementation follows the sklearn practice and just returns the *labels_* attribute for benchmark.
+Here DBSCAN is used considering the measurement properties of Velodyne lidar.
 
 ```python
-    def predict(self, data):
-        """
-        Get cluster labels
+def clustering(data):
+    """
+    Segment surrounding objects using DBSCAN
 
-        """
-        return np.copy(self.__labels)
+    Parameters
+    ----------
+    data: numpy.ndarray
+        Segmented point cloud as N-by-3 numpy.ndarray
+
+    Returns
+    ----------
+    cluster_index: list of int
+        Cluster ID for each point
+
+    """
+    # TODO 02 -- surrounding object segmentation
+    cluster_index = DBSCAN(
+        eps=0.25, min_samples=5, n_jobs=-1
+    ).fit_predict(data)
+
+    return cluster_index
 ```
-
-To run the test case, launch the docker environment and go to **/workspace/assignments/03-clustering/** and run the following commands:
-
-```bash
-# go to HW3 working dir:
-cd /workspace/assignments/03-clustering
-# activate environment:
-source activate point-cloud
-# SpectralClustering:
-./SpectralClustering.py
-```
-
-The result clustering is as follows:
-
-<img src="doc/03-spectralclustering-testcase.png" alt="Spectral Clustering Testcase" width="100%">
 
 ---
 
-### Benchmark
+### Visualization
+
+The implementation is available at (click to follow the link) **[/workspace/assignments/04-model-fitting/clustering.py](clustering.py)**
+
+Since matplotlib is not optimized for point cloud visualization, here another implementation based on Open3D is used.
+
+```python
+def plot_clusters(segmented_ground, segmented_cloud, cluster_index):
+    """
+    Visualize segmentation results using Open3D
+
+    Parameters
+    ----------
+    segmented_cloud: numpy.ndarray
+        Segmented surrounding objects as N-by-3 numpy.ndarray
+    segmented_ground: numpy.ndarray
+        Segmented ground as N-by-3 numpy.ndarray
+    cluster_index: list of int
+        Cluster ID for each point
+
+    """
+    def colormap(c, num_clusters):
+        """
+        Colormap for segmentation result
+
+        Parameters
+        ----------
+        c: int 
+            Cluster ID
+        C
+
+        """
+        # outlier:
+        if c == -1:
+            color = [1]*3
+        # surrouding object:
+        else:
+            color = [0] * 3
+            color[c % 3] = c/num_clusters
+
+        return color
+
+    # ground element:
+    pcd_ground = o3d.geometry.PointCloud()
+    pcd_ground.points = o3d.utility.Vector3dVector(segmented_ground)
+    pcd_ground.colors = o3d.utility.Vector3dVector(
+        [
+            [0.372]*3 for i in range(segmented_ground.shape[0])
+        ]
+    )
+
+    # surrounding object elements:
+    pcd_objects = o3d.geometry.PointCloud()
+    pcd_objects.points = o3d.utility.Vector3dVector(segmented_cloud)
+    num_clusters = max(cluster_index) + 1
+    pcd_objects.colors = o3d.utility.Vector3dVector(
+        [
+            colormap(c, num_clusters) for c in cluster_index
+        ]
+    )
+
+    # visualize:
+    o3d.visualization.draw_geometries([pcd_ground, pcd_objects])  
+```
+
+---
+
+### Demo
 
 To run the test cases, go to **/workspace/assignments/03-clustering/** and run the following commands:
 
 ```bash
-# go to HW3 working dir:
-cd /workspace/assignments/03-clustering
+# go to HW4 working dir:
+cd /workspace/assignments/04-model-fitting
 # activate environment:
 source activate point-cloud
-# clustering algorithm benchmark:
-./compare_cluster.py
+# run segmentation on 3 random measurements from training set:
+./clustering.py -i /workspace/data/kitti-3d-object-detection/training/velodyne/ -n 3
 ```
 
 The results are as follows
 
-<img src="doc/clustering-benchmark.png" alt="Benchmark" width="100%">
+<img src="doc/01-training-004104.png" alt="Demo Training 004104" width="100%">
+
+<img src="doc/02-training-006117.png" alt="Demo Training 006117" width="100%">
+
+<img src="doc/03-training-000000.png" alt="Demo Training 000000" width="100%">

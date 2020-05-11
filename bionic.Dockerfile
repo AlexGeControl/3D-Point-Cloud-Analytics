@@ -7,7 +7,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV HOME=/root SHELL=/bin/bash
 
 # install apt-fast:
-ADD ${PWD}/image/etc/apt/sources.list.d/aliyun.list /etc/apt/sources.list.d/
+ADD ${PWD}/image/etc/apt/sources.list.d/aliyun.bionic.list /etc/apt/sources.list.d/
 RUN apt-get update --fix-missing && \
     apt-get -y install software-properties-common axel aria2 && \
     add-apt-repository ppa:apt-fast/stable && \
@@ -29,10 +29,11 @@ RUN apt-fast update --fix-missing && \
         nginx \
         python3-pip python3-dev build-essential \
         mesa-utils libgl1-mesa-dri \
-        gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine pinta arc-theme \
+        gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine pinta \
         libglib2.0-0 libxext6 libsm6 libxrender1 \
         dbus-x11 x11-utils \
-        terminator && \
+        terminator \
+        libpcl-dev && \
     apt-fast autoclean && \
     apt-fast autoremove && \
     rm -rf /var/lib/apt/lists/*
@@ -58,7 +59,7 @@ ADD image /
 RUN cp /usr/share/applications/terminator.desktop /root/Desktop
 
 # TODO: the downgrading of pip is caused by pyangbind-brcd==0.6.14
-RUN pip install --upgrade pip pip-tools && \
+RUN pip install --upgrade pip pip-tools setuptools && \
     pip install setuptools wheel && \
     pip install -r /usr/lib/dev/requirements.txt
     # TODO: migrate to Python3

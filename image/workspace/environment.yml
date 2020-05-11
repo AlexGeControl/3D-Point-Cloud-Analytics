@@ -127,6 +127,7 @@ dependencies:
     - pyqtwebengine==5.12.1
     - pyrsistent==0.16.0
     - pytest==5.4.1
+    - python-pcl==0.3.0a1
     - pyzmq==19.0.0
     - send2trash==1.5.0
     - terminado==0.8.3
