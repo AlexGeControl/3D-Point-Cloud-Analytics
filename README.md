@@ -1,6 +1,10 @@
 # Docker for 3D Point Cloud Analysis
 
-This is the Docker image for 3D Point Cloud Analysis, www.shenlanxueyuan.com.
+This is the Docker image for open courseware 3D Point Cloud Analysis from www.shenlanxueyuan.com, China.
+
+All source code are based upon public available resources and starter-code from www.shenlanxueyuan.com.
+
+Please check them before disturbing me with your own stupid claims.
 
 ---
 
