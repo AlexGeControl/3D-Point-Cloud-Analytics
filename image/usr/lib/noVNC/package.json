@@ -48,7 +48,7 @@
     "karma-sinon-chai-latest": "^0.1.0",
     "mocha": "^3.1.2",
     "node-getopt": "*",
-    "open": "^0.0.5",
+    "open": "^7.0.3",
     "phantomjs-prebuilt": "^2.1.13",
     "po2json": "*",
     "sinon": "^1.17.6",
