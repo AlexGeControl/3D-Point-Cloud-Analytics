@@ -1,6 +1,10 @@
 *
 !.gitignore
-!get-modelnet40.sh
+# modelnet 40, general point cloud analytics:
+!download-modelnet40.sh
 !sample-modelnet40.py
+# modelnet 40 for pointnet++ evaluation:
+!download-modelnet40-normal-resampled.sh
+# kitti:
 !download-kitti.sh
 !download-kitti-3d-object-detection.sh

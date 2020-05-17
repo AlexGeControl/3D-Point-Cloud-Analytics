@@ -54,7 +54,7 @@ dependencies:
   - pandas=1.0.3=py36h830a2c2_1
   - pcre=8.44=he1b5a44_0
   - pillow=7.0.0=py36h8328e55_1
-  - pip=9.0.3=py36_0
+  - pip=20.1
   - pthread-stubs=0.4=h14c3975_1001
   - pyntcloud=0.1.2=py_0
   - pyparsing=2.4.6=py_0
@@ -112,8 +112,10 @@ dependencies:
     - parso==0.7.0
     - pexpect==4.8.0
     - pickleshare==0.7.5
+    - pip==20.1
     - pluggy==0.13.1
     - plyfile==0.7.2
+    - progressbar2==3.51.3
     - prometheus-client==0.7.1
     - prompt-toolkit==3.0.5
     - ptyprocess==0.6.0
@@ -129,7 +131,9 @@ dependencies:
     - pytest==5.4.1
     - python-pcl==0.3.0a1
     - pyzmq==19.0.0
+    - seaborn==0.10.1
     - send2trash==1.5.0
+    - tensorflow-gpu==2.2.0rc2
     - terminado==0.8.3
     - testpath==0.4.4
     - traitlets==4.3.3
@@ -137,5 +141,4 @@ dependencies:
     - webencodings==0.5.1
     - widgetsnbextension==3.5.1
     - zipp==3.1.0
-prefix: /opt/conda/envs/point-cloud
 
