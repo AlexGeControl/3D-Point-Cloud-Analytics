@@ -69,16 +69,35 @@ class ModelNet40Dataset:
         input_dir,
         filename_labels = 'modelnet40_shape_names.txt',
         filename_train = 'modelnet40_train.txt',
+        size_validate = 0.20,
         filename_test = 'modelnet40_test.txt',
+        random_seed=42
     ):
         # I/O spec:
         self.__input_dir = input_dir
         # load labels:
         (self.__labels, self.__encoder, self.__decoder) = self.__load_labels(filename_labels)
-        # load split:
-        self.__train = self.__load_examples(filename_train)
+
+        # load training set:
+        self.__train = np.asarray(
+            self.__load_examples(filename_train)
+        )
+        # create validation set:
+        sss = StratifiedShuffleSplit(n_splits=1, test_size=size_validate, random_state=random_seed)
+        for fit_index, validate_index in sss.split(            
+            self.__train, 
+            # labels:
+            [t.split('_')[0] for t in self.__train]
+        ):
+            self.__fit, self.__validate = self.__train[fit_index], self.__train[validate_index]
+        # load test set:
         self.__test = self.__load_examples(filename_test)
-        # load dims:
+
+        # remove orders:
+        random.seed(random_seed)
+        random.shuffle(self.__fit)
+        random.shuffle(self.__validate)
+        random.shuffle(self.__test)
 
     def __load_labels(self, filename_labels):
         """ 
@@ -297,18 +316,25 @@ class ModelNet40Dataset:
         N = example['N']
         d = example['d']
         C = example['C']
-
+        
+        # format:
         xyz = tf.reshape(xyz, (ModelNet40Dataset.N, ModelNet40Dataset.d))
         points = tf.reshape(points, (ModelNet40Dataset.N, ModelNet40Dataset.C))
+
+        # center to zero:
+        xyz -= tf.reduce_mean(xyz, axis=0)
 
         # remove order in point cloud:
         indices = tf.range(start=0, limit=ModelNet40Dataset.N, dtype=tf.int32)
         shuffled_indices = tf.random.shuffle(indices)
 
-        xyz = tf.gather(xyz, shuffled_indices)
-        points = tf.gather(points, shuffled_indices)
+        # use surface normals:
+        features = tf.gather(
+            tf.concat([xyz, points], 1), 
+            shuffled_indices
+        )
 
-        return xyz, label
+        return features, label
 
     def write(self, output_name):
         """ 
@@ -322,8 +348,14 @@ class ModelNet40Dataset:
         """
         print('[ModelNet40 Dataset (With Normal)]: Write training set...')        
         self.__write(
-            self.__train, 
+            self.__fit, 
             os.path.join('data', f'{output_name}_train.tfrecord')
+        )
+
+        print('[ModelNet40 Dataset (With Normal)]: Write validation set...')  
+        self.__write(
+            self.__validate, 
+            os.path.join('data', f'{output_name}_validate.tfrecord')
         )
 
         print('[ModelNet40 Dataset (With Normal)]: Write testing set...')  
@@ -344,14 +376,161 @@ source activate point-cloud
 preprocess.py -i /workspace/data/modelnet40_normal_resampled -o modelnet40_with_normal
 ```
 
+**Key Takeaways from Pre-Processing** are as follows:
+
+* **Remove the Order in Training Set**
+    Since the batch is created by loading dataset sequentially into sampling buffer, if the intrinsic order is not removed the training would fail completely by not able to learn the distribution of dataset at all. 
+    ```python
+    # I/O spec:
+    self.__input_dir = input_dir
+    # load labels:
+    (self.__labels, self.__encoder, self.__decoder) = self.__load_labels(filename_labels)
+
+    # load training set:
+    self.__train = np.asarray(
+        self.__load_examples(filename_train)
+    )
+    # create validation set:
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=size_validate, random_state=random_seed)
+    for fit_index, validate_index in sss.split(            
+        self.__train, 
+        # labels:
+        [t.split('_')[0] for t in self.__train]
+    ):
+        self.__fit, self.__validate = self.__train[fit_index], self.__train[validate_index]
+    # load test set:
+    self.__test = self.__load_examples(filename_test)
+
+    # remove orders:
+    random.seed(random_seed)
+    random.shuffle(self.__fit)
+    random.shuffle(self.__validate)
+    random.shuffle(self.__test)
+    ```
+* **Shift Object to Canonical Postion**
+    Shift the object to canonical position by substracting the mean from point cloud.
+    ```python
+    # center to zero:
+    xyz -= tf.reduce_mean(xyz, axis=0)
+    ```
 ---
 
 ### Build the Network
 
-The three networks
+The two networks
 
-* [PointNet for Classification](/workspace/assignments/05-deep-classification/models/cls_msg_model.py)
 * [PointNet++, Multiple-Scale Grouping for Classification](/workspace/assignments/05-deep-classification/models/cls_msg_model.py)
 * [PointNet++, Single-Scale Grouping for Classification](/workspace/assignments/05-deep-classification/models/cls_ssg_model.py)
 
 are available at (click to follow the link) **[/workspace/assignments/05-deep-classification/models](/workspace/assignments/05-deep-classification/models)**
+
+In order to use surface normal features, implement the forward_pass step as follows:
+
+```python
+def forward_pass(self, input, training):
+    # get feature dimension:
+    d = tf.shape(input).numpy()[-1]
+
+    # extract point and corresponding features:
+    xyz, points = tf.split(
+        input, [3, d - 3], axis=-1, name='split'
+    )
+
+    xyz, points = self.layer1(xyz, points, training=training)
+    xyz, points = self.layer2(xyz, points, training=training)
+    xyz, points = self.layer3(xyz, points, training=training)
+
+    net = tf.reshape(points, (self.batch_size, -1))
+
+    net = self.dense1(net)
+    net = self.dropout1(net)
+
+    net = self.dense2(net)
+    net = self.dropout2(net)
+
+    pred = self.dense3(net)
+
+    return pred
+```
+
+---
+
+### Testing Accuracy
+
+
+#### Training
+
+The loss and categorical accuracy in training from Tensorboard are as follows:
+
+<img src="doc/train-loss.png" alt="Training-Loss">
+
+<img src="doc/train-accuracy.png" alt="Training-Accuracy">
+
+It can be read from the graph that **the categorical accuracy on validation set is around 0.875**
+
+#### Testing
+
+First is the classification report from sklearn:
+
+```bash
+              precision    recall  f1-score   support
+
+    airplane       0.97      0.99      0.98       100
+     bathtub       1.00      0.82      0.90        50
+         bed       0.96      0.95      0.95       100
+       bench       0.76      0.65      0.70        20
+   bookshelf       0.94      0.95      0.95       100
+      bottle       0.88      0.99      0.93       100
+        bowl       0.83      0.79      0.81        19
+         car       0.91      0.91      0.91        99
+       chair       0.91      1.00      0.95       100
+        cone       0.95      0.90      0.92        20
+         cup       0.53      0.50      0.51        20
+     curtain       1.00      0.40      0.57        20
+        desk       0.61      0.81      0.70        86
+        door       0.63      0.95      0.76        20
+     dresser       0.75      0.70      0.72        86
+  flower_pot       0.06      0.10      0.08        20
+   glass_box       0.86      0.97      0.91       100
+      guitar       0.98      0.89      0.93       100
+    keyboard       0.85      0.85      0.85        20
+        lamp       0.62      0.65      0.63        20
+      laptop       0.63      0.95      0.76        20
+      mantel       0.97      0.92      0.94       100
+     monitor       0.97      0.96      0.96       100
+ night_stand       0.68      0.73      0.70        86
+      person       0.86      0.95      0.90        20
+       piano       0.87      0.86      0.86       100
+       plant       0.81      0.66      0.73       100
+       radio       0.52      0.55      0.54        20
+  range_hood       0.99      0.90      0.94       100
+        sink       0.60      0.75      0.67        20
+        sofa       0.99      0.90      0.94       100
+      stairs       0.85      0.55      0.67        20
+       stool       0.64      0.70      0.67        20
+       table       0.79      0.62      0.70        98
+        tent       0.58      0.90      0.71        20
+      toilet       1.00      0.98      0.99       100
+    tv_stand       0.95      0.70      0.80       100
+        vase       0.64      0.80      0.71       100
+    wardrobe       0.77      0.50      0.61        20
+        xbox       0.72      0.65      0.68        20
+
+    accuracy                           0.84      2464
+   macro avg       0.80      0.78      0.78      2464
+weighted avg       0.86      0.84      0.84      2464
+```
+
+And the confusion matrix:
+
+<img src="doc/test-confusion-matrix.png" alt="Testing-Confusion Matrix">
+
+The following conclusions can be drawn from above data:
+
+* **The Trained Model Generalizes Very Well on Test Set** 
+
+    Since the categorical accuracy on validation and test sets are comparable.
+
+* **The Model's Performance Bottleneck is on the Rare Classes** 
+
+    The model has poor accuracies for rare input classes. Perhaps this could be improved by balancing the set using data augmentation.

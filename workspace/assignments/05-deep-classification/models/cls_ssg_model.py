@@ -68,8 +68,15 @@ class CLS_SSG_Model(Model):
 
 
 	def forward_pass(self, input, training):
+		# get feature dimension:
+		# d = tf.shape(input).numpy()[-1]
 
-		xyz, points = self.layer1(input, None, training=training)
+		# extract point and corresponding features:
+		xyz, points = tf.split(
+			input, [3, 3], axis=-1, name='split'
+		)
+
+		xyz, points = self.layer1(xyz, points, training=training)
 		xyz, points = self.layer2(xyz, points, training=training)
 		xyz, points = self.layer3(xyz, points, training=training)
 

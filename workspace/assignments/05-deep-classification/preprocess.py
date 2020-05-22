@@ -1,4 +1,4 @@
-#!/opt/conda/envs/point-cloud/bin/python
+#!/opt/conda/envs/deep-classification/bin/python
 
 # preprocess.py
 #     Convert point cloud with normal in TXT into tfrecords
@@ -7,8 +7,10 @@ import argparse
 import glob
 import os
 
+import random
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import StratifiedShuffleSplit
 import tensorflow as tf
 
 import progressbar
@@ -41,16 +43,35 @@ class ModelNet40Dataset:
         input_dir,
         filename_labels = 'modelnet40_shape_names.txt',
         filename_train = 'modelnet40_train.txt',
+        size_validate = 0.20,
         filename_test = 'modelnet40_test.txt',
+        random_seed=42
     ):
         # I/O spec:
         self.__input_dir = input_dir
         # load labels:
-        (self.__labels, self.__encoder, self.__decoder) = self.__load_labels(filename_labels)
-        # load split:
-        self.__train = self.__load_examples(filename_train)
+        self.__labels, self.__encoder, self.__decoder = self.__load_labels(filename_labels)
+
+        # load training set:
+        self.__train = np.asarray(
+            self.__load_examples(filename_train)
+        )
+        # create validation set:
+        sss = StratifiedShuffleSplit(n_splits=1, test_size=size_validate, random_state=random_seed)
+        for fit_index, validate_index in sss.split(            
+            self.__train, 
+            # labels:
+            [t.split('_')[0] for t in self.__train]
+        ):
+            self.__fit, self.__validate = self.__train[fit_index], self.__train[validate_index]
+        # load test set:
         self.__test = self.__load_examples(filename_test)
-        # load dims:
+
+        # remove orders:
+        random.seed(random_seed)
+        random.shuffle(self.__fit)
+        random.shuffle(self.__validate)
+        random.shuffle(self.__test)
 
     def __load_labels(self, filename_labels):
         """ 
@@ -153,6 +174,15 @@ class ModelNet40Dataset:
                 # write to tfrecord:
                 serialized_example = ModelNet40Dataset.serialize(xyz, points, label_id)
                 writer.write(serialized_example)
+
+    def get_labels(self):
+        return self.__labels
+
+    def get_encoder(self):
+        return self.__encoder
+
+    def get_decoder(self):
+        return self.__decoder
 
     @staticmethod
     def __bytes_feature(value):
@@ -269,18 +299,25 @@ class ModelNet40Dataset:
         N = example['N']
         d = example['d']
         C = example['C']
-
+        
+        # format:
         xyz = tf.reshape(xyz, (ModelNet40Dataset.N, ModelNet40Dataset.d))
         points = tf.reshape(points, (ModelNet40Dataset.N, ModelNet40Dataset.C))
+
+        # center to zero:
+        xyz -= tf.reduce_mean(xyz, axis=0)
 
         # remove order in point cloud:
         indices = tf.range(start=0, limit=ModelNet40Dataset.N, dtype=tf.int32)
         shuffled_indices = tf.random.shuffle(indices)
 
-        xyz = tf.gather(xyz, shuffled_indices)
-        points = tf.gather(points, shuffled_indices)
+        # use surface normals:
+        features = tf.gather(
+            tf.concat([xyz, points], 1), 
+            shuffled_indices
+        )
 
-        return xyz, label
+        return features, label
 
     def write(self, output_name):
         """ 
@@ -294,8 +331,14 @@ class ModelNet40Dataset:
         """
         print('[ModelNet40 Dataset (With Normal)]: Write training set...')        
         self.__write(
-            self.__train, 
+            self.__fit, 
             os.path.join('data', f'{output_name}_train.tfrecord')
+        )
+
+        print('[ModelNet40 Dataset (With Normal)]: Write validation set...')  
+        self.__write(
+            self.__validate, 
+            os.path.join('data', f'{output_name}_validate.tfrecord')
         )
 
         print('[ModelNet40 Dataset (With Normal)]: Write testing set...')  

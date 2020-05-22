@@ -11,7 +11,6 @@ from pnet2_layers.layers import Pointnet_SA, Pointnet_SA_MSG
 
 
 class CLS_MSG_Model(Model):
-
 	def __init__(self, batch_size, num_classes, bn=False, activation=tf.nn.relu):
 		super(CLS_MSG_Model, self).__init__()
 
@@ -67,13 +66,28 @@ class CLS_MSG_Model(Model):
 
 
 	def forward_pass(self, input, training):
+		"""
+		Forward propagation
 
-		xyz, points = self.layer1(input, None, training=training)
+		---
+
+		"""
+		# get feature dimension:
+		# d = tf.shape(input).numpy()[-1]
+
+		# extract point and corresponding features:
+		xyz, points = tf.split(
+			input, [3, 3], axis=-1, name='split'
+		)
+
+		# set aggregation:
+		xyz, points = self.layer1(xyz, points, training=training)
 		xyz, points = self.layer2(xyz, points, training=training)
 		xyz, points = self.layer3(xyz, points, training=training)
 
 		net = tf.reshape(points, (self.batch_size, -1))
-
+		
+		# multi-layer perceptrons:
 		net = self.dense1(net)
 		net = self.dropout1(net)
 
@@ -101,7 +115,6 @@ class CLS_MSG_Model(Model):
 
 
 	def test_step(self, input):
-
 		pred = self.forward_pass(input[0], False)
 		loss = self.compiled_loss(input[1], pred)
 
@@ -111,5 +124,4 @@ class CLS_MSG_Model(Model):
 
 
 	def call(self, input, training=False):
-
 		return self.forward_pass(input, training)

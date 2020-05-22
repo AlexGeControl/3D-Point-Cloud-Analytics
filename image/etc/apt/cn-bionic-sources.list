@@ -41,9 +41,9 @@ deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe 
 # deb http://archive.canonical.com/ubuntu bionic partner
 # deb-src http://archive.canonical.com/ubuntu bionic partner
 
-deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted
-# deb-src http://security.ubuntu.com/ubuntu/ bionic-security main restricted
-deb http://security.ubuntu.com/ubuntu/ bionic-security universe
-# deb-src http://security.ubuntu.com/ubuntu/ bionic-security universe
-deb http://security.ubuntu.com/ubuntu/ bionic-security multiverse
-# deb-src http://security.ubuntu.com/ubuntu/ bionic-security multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted
+# deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted
+deb http://mirrors.aliyun.com/ubuntu/ bionic-security universe
+# deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security universe
+deb http://mirrors.aliyun.com/ubuntu/ bionic-security multiverse
+# deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security multiverse
