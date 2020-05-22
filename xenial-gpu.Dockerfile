@@ -50,7 +50,8 @@ RUN apt-fast update --fix-missing && \
         libglib2.0-0 libxext6 libsm6 libxrender1 \
         dbus-x11 x11-utils \
         terminator \
-        texlive-latex-extra \
+        gnuplot \
+        texlive-extra-utils texlive-latex-extra \
         cmake libgoogle-glog-dev libatlas-base-dev libeigen3-dev libdw-dev \
         libpcl-dev && \
     apt-fast autoclean && \
@@ -84,8 +85,10 @@ WORKDIR /workspace
 
 # keep conda updated to the latest version:
 RUN conda update conda
-    # point cloud analytics:
-    # conda env create -f gpu.yaml
+
+# point cloud analytics:
+ADD ${PWD}/workspace/assignments/05-deep-classification/05-deep-classification.yaml /workspace/05-deep-classification.yaml
+RUN conda env create -f /workspace/05-deep-classification.yaml
 
 EXPOSE 80 5900 9001
 
