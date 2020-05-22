@@ -1,0 +1,3 @@
+[submodule "workspace/assignments/06-deep-detection/kitti-eval"]
+	path = workspace/assignments/06-deep-detection/kitti-eval
+	url = https://github.com/prclibo/kitti_eval.git
