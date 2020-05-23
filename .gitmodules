@@ -1,3 +1,6 @@
 [submodule "workspace/assignments/06-deep-detection/kitti-eval"]
 	path = workspace/assignments/06-deep-detection/kitti-eval
 	url = https://github.com/prclibo/kitti_eval.git
+[submodule "workspace/assignments/06-deep-detection/point-pillar"]
+	path = workspace/assignments/06-deep-detection/point-pillar
+	url = https://github.com/traveller59/second.pytorch.git
