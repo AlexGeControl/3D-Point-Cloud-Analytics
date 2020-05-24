@@ -140,18 +140,18 @@ First, train the detectors for **car** and **pedestrian & cyclist**
 
 ```bash
 # train car detector:
-python ./pytorch/train.py train --config_path=./configs/pointpillars/car/xyres_16.config --model_dir=/models/models/16/car
+python ./pytorch/train.py train --config_path=./configs/pointpillars/car/xyres_16.config --model_dir=/workspace/assignments/06-deep-detection/models/trained_v1.6/16/car --resume=True
 # train pedestrian & cyclist detector:
-python ./pytorch/train.py train --config_path=./configs/pointpillars/ped_cycle/xyres_16.config --model_dir=/models/models/16/ped_cycle
+python ./pytorch/train.py train --config_path=./configs/pointpillars/ped_cycle/xyres_16.config --model_dir=/workspace/assignments/06-deep-detection/models/trained_v1.6/16/ped_cycle --resume=True
 ```
 
 Then get prediction output as follows:
 
 ```bash
 # evaluate car detector:
-python ./pytorch/train.py evaluate --config_path=./configs/pointpillars/car/xyres_16.config --model_dir=/models/models/16/car --measure_time=True --batch_size=4 --pickle_result=False
+python ./pytorch/train.py evaluate --config_path=./configs/pointpillars/car/xyres_16.config --model_dir=/workspace/assignments/06-deep-detection/models/trained_v1.6/16/car --measure_time=True --batch_size=4 --pickle_result=False
 # evaluate pedestrian & cyclist detector:
-python ./pytorch/train.py evaluate --config_path=./configs/pointpillars/ped_cycle/xyres_16.config --model_dir=/models/models/16/ped_cycle --measure_time=True --batch_size=4 --pickle_result=False
+python ./pytorch/train.py evaluate --config_path=./configs/pointpillars/ped_cycle/xyres_16.config --model_dir=/workspace/assignments/06-deep-detection/models/trained_v1.6/16/ped_cycle --measure_time=True --batch_size=4 --pickle_result=False
 ```
 
 Finally, evaluate model output using KITTI evaluation toolkit:
