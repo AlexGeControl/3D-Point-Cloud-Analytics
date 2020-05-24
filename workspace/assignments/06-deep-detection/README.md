@@ -122,7 +122,13 @@ if __name__ == '__main__':
     generate_detection_results(arguments.input, arguments.output)
 ```
 
-The output from KITTI evaluation toolkit can be found here (click to follow the link) **[/workspace/assignments/06-deep-detection/doc/eval-on-ground-truth](here)**
+The output from KITTI evaluation toolkit can be found here (click to follow the link) **[/workspace/assignments/06-deep-detection/doc/eval-on-ground-truth](here)**. The three PR-curves for **Car, Pedestrian and Cyclist** are shown below.
+
+<img src="doc/eval-on-ground-truth/car_detection.png" alt="mAP for Car, Ground Truth" width="100%">
+
+<img src="doc/eval-on-ground-truth/pedestrian_detection.png" alt="mAP for Pedestrian, Ground Truth" width="100%">
+
+<img src="doc/eval-on-ground-truth/cyclist_detection.png" alt="mAP for Cyclist, Ground Truth" width="100%">
 
 ---
 
@@ -154,4 +160,10 @@ Finally, evaluate model output using KITTI evaluation toolkit:
 # TBD
 ```
 
-The output from KITTI evaluation toolkit can be found here (click to follow the link) **[/workspace/assignments/06-deep-detection/doc/eval-on-pointpillars-trained](here)**
+The output from KITTI evaluation toolkit can be found here (click to follow the link) **[/workspace/assignments/06-deep-detection/doc/eval-on-pointpillars-trained](here)**. The three PR-curves for **Car, Pedestrian and Cyclist** are shown below.
+
+<img src="doc/eval-on-pointpillars-trained/car_detection.png" alt="mAP for Car, Point Pillars" width="100%">
+
+<img src="doc/eval-on-pointpillars-trained/pedestrian_detection.png" alt="mAP for Pedestrian, Point Pillars" width="100%">
+
+<img src="doc/eval-on-pointpillars-trained/cyclist_detection.png" alt="mAP for Cyclist, Point Pillars" width="100%">
