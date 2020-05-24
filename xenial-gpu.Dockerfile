@@ -45,12 +45,12 @@ RUN apt-fast update --fix-missing && \
         firefox \
         nginx \
         python3-pip python3-dev \
-        cmake build-essential \
+        cmake build-essential libboost-all-dev \
         gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine pinta \
         libglib2.0-0 libxext6 libsm6 libxrender1 \
         dbus-x11 x11-utils \
         terminator \
-        gnuplot \
+        gnuplot ghostscript \
         texlive-extra-utils texlive-latex-extra \
         cmake libgoogle-glog-dev libatlas-base-dev libeigen3-dev libdw-dev \
         libpcl-dev && \
