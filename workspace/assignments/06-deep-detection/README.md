@@ -122,13 +122,36 @@ if __name__ == '__main__':
     generate_detection_results(arguments.input, arguments.output)
 ```
 
+The output from KITTI evaluation toolkit can be found here (click to follow the link) **[/workspace/assignments/06-deep-detection/doc/eval-on-ground-truth](here)**
+
 ---
 
 ### Generate Object Detection Results Using Point Pillars Prediction
 
-In order to generate object detection results from ground truth labels, use the following script inside (click to follow the link) **[/workspace/assignments/06-deep-detection/kitti-eval/create_pred_from_ground_truth.py](kitti-eval)**
+In order to generate object detection results from point pillar predictions, use the adapted point pillars implementation by TuSimple (click to follow the link) **[/workspace/assignments/06-deep-detection/point-pillar/README.md](README.md)**
+
+First, train the detectors for **car** and **pedestrian & cyclist**
 
 ```bash
-# create object detection results from ground truth labels:
-./create_pred_from_ground_truth.py -i /workspace/data/kitti-3d-object-detection/training/label_2/ -o /workspace/data/kitti-3d-object-detection/training/pred_2/
+# train car detector:
+python ./pytorch/train.py train --config_path=./configs/pointpillars/car/xyres_16.config --model_dir=/models/models/16/car
+# train pedestrian & cyclist detector:
+python ./pytorch/train.py train --config_path=./configs/pointpillars/ped_cycle/xyres_16.config --model_dir=/models/models/16/ped_cycle
 ```
+
+Then get prediction output as follows:
+
+```bash
+# evaluate car detector:
+python ./pytorch/train.py evaluate --config_path=./configs/pointpillars/car/xyres_16.config --model_dir=/models/models/16/car --measure_time=True --batch_size=4 --pickle_result=False
+# evaluate pedestrian & cyclist detector:
+python ./pytorch/train.py evaluate --config_path=./configs/pointpillars/ped_cycle/xyres_16.config --model_dir=/models/models/16/ped_cycle --measure_time=True --batch_size=4 --pickle_result=False
+```
+
+Finally, evaluate model output using KITTI evaluation toolkit:
+
+```bash
+# TBD
+```
+
+The output from KITTI evaluation toolkit can be found here (click to follow the link) **[/workspace/assignments/06-deep-detection/doc/eval-on-pointpillars-trained](here)**
