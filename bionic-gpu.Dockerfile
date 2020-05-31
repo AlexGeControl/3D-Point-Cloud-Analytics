@@ -14,8 +14,9 @@ USER root
 
 # for Ubuntu:
 COPY ${PWD}/image/etc/apt/cn-bionic-sources.list /etc/apt/sources.list
-COPY ${PWD}/image/etc/apt/sources.list.d/cn-bionic-cuda.list /etc/apt/sources.list.d/cuda.list
-COPY ${PWD}/image/etc/apt/sources.list.d/cn-bionic-nvidia-ml.list /etc/apt/sources.list.d/nvidia-ml.list
+# COPY ${PWD}/image/etc/apt/sources.list.d/cn-bionic-cuda.list /etc/apt/sources.list.d/cuda.list
+# COPY ${PWD}/image/etc/apt/sources.list.d/cn-bionic-nvidia-ml.list /etc/apt/sources.list.d/nvidia-ml.list
+RUN rm -f /etc/apt/sources.list.d/*
 # for Python: 
 COPY ${PWD}/image/etc/pip.conf /root/.pip/pip.conf
 
@@ -43,14 +44,14 @@ RUN apt-fast update --fix-missing && \
         gtk2-engines-murrine ttf-ubuntu-font-family \
         firefox \
         nginx \
-        python-pip python3-pip python3-dev \
-        cmake build-essential \
-        libcupti-dev cuda-10-1 libcudnn7=7.6.4.38-1+cuda10.1 libcudnn7-dev=7.6.4.38-1+cuda10.1 \
+        python3-pip python3-dev \
+        cmake build-essential libboost-all-dev \
         gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine pinta \
         libglib2.0-0 libxext6 libsm6 libxrender1 \
         dbus-x11 x11-utils \
         terminator \
-        texlive-latex-extra \
+        gnuplot ghostscript \
+        texlive-extra-utils texlive-latex-extra \
         cmake libgoogle-glog-dev libatlas-base-dev libeigen3-dev libdw-dev \
         libpcl-dev && \
     apt-fast autoclean && \
@@ -59,18 +60,19 @@ RUN apt-fast update --fix-missing && \
 
 # ------ PART 3: offline installs ------
 
-ADD ${PWD}/installers /installers
+ADD ${PWD}/installers /tmp/installers
+WORKDIR /tmp/installers
 
 # install tini:
-RUN dpkg -i /installers/tini.deb && \
+RUN dpkg -i tini.deb && \
     apt-get clean
 
 # install anaconda:
-RUN /bin/bash /installers/anaconda.sh -b -p /opt/conda && \
+RUN /bin/bash anaconda.sh -b -p /opt/conda && \
     ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
 
-RUN rm -rf /installers
+RUN rm -rf /tmp/installers
 
 # ------ PART 4: set up VNC servers ------
 
@@ -81,11 +83,12 @@ ADD image /
 
 WORKDIR /workspace
 
-ADD ${PWD}/environment/gpu.yaml /workspace
 # keep conda updated to the latest version:
-RUN conda update -n base -c defaults conda
-    # point cloud analytics:
-    # conda env create -f gpu.yaml
+RUN conda update conda
+
+# point cloud analytics:
+# ADD /home/yaoge/Workspace/3d-point-cloud-analytics/workspace/assignments/project-01-kitti-detection-pipeline/environment/kitti-detection-pipeline.yaml /workspace/
+#　RUN conda env create -f /workspace/kitti-detection-pipeline.yaml
 
 EXPOSE 80 5900 9001
 

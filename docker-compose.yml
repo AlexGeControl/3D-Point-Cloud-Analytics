@@ -12,8 +12,6 @@ services:
       - ${PWD}/workspace/assignments:/workspace/assignments  
       # data volume:
       - ${PWD}/workspace/data:/workspace/data
-      # temporary -- for imu calibration visualization
-      - /home/yaoge/Workspace/stone-caring-robotics/imu_calibration/ros_melodic/src/imu_utils/data:/workspace/imu-calibration
     # network_mode: host
     ports:
       # standard vnc client:
@@ -32,8 +30,6 @@ services:
       - ${PWD}/workspace/assignments:/workspace/assignments  
       # data volume:
       - ${PWD}/workspace/data:/workspace/data
-      # temporary -- for imu calibration visualization
-      - /home/yaoge/Workspace/stone-caring-robotics/imu_calibration/ros_melodic/src/imu_utils/data:/workspace/imu-calibration
     # network_mode: host
     ports:
       # standard vnc client:
