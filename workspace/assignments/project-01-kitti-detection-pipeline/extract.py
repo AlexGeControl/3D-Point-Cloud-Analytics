@@ -1,8 +1,8 @@
 #!/opt/conda/envs/kitti-detection-pipeline/bin/python
 
 # extract.py
-#     1. load label, calib and velodyne data from origin KITTI 3D Object Detection dataset
-#     2. extract target point cloud from velodyne measurements using label and calib
+#     1. load label, calib and velodyne data from original KITTI 3D Object Detection dataset
+#     2. extract target point cloud from velodyne measurements using label and calib parameters
 #     3. save data in modelnet40 normal resampled format for later modelling
 
 import argparse
@@ -199,7 +199,7 @@ def filter_by_bouding_box(X, labels, dims):
     idx_obj = np.all(
         np.logical_and(
             X >= -dims/2,
-            X <= +dims/2
+            X <=  dims/2
         ),
         axis = 1
     )
@@ -281,7 +281,13 @@ def read_label(filepath, param):
 
 def init_label():
     """
-    Get label template for generated classification dataset
+    Get label template for extracted classification dataset
+
+    Returns
+    ----------
+    labels: dict
+        label container for extracted classification dataset
+
     """
     return {
         # original category:
@@ -302,7 +308,23 @@ def init_label():
 
 def add_label(dataset_label, category, label, N):
     """
-    Add new label for generated classification dataset
+    Add new label for extracted classification dataset
+
+    Parameters
+    ----------
+    dataset_label: dict
+        label container for extracted classification dataset
+    category: str
+        label of extracted object
+    label: pandas.Series
+        one KITTI 3D Object label record as pandas Series
+    N: int
+        number of Velodyne measurements
+
+    Returns
+    ----------
+    None
+
     """
     if label is None:
         # kitti category:
@@ -341,7 +363,16 @@ def add_label(dataset_label, category, label, N):
 
 def get_object_pcd_df(pcd, idx, N):
     """
-    Format point cloud as dataframe
+    Format point cloud with normal as dataframe
+
+    Parameters
+    ----------
+    pcd: open3d.PointCloud
+        Velodyne measurements as Open3D PointCloud
+    idx: numpy.ndarray
+        object indices for point coordinates and surface normal extraction
+    N: int
+        number of Velodyne measurements of extracted object
     """
     df_point_cloud_with_normal = pd.DataFrame(
         data = np.hstack(
@@ -357,6 +388,20 @@ def get_object_pcd_df(pcd, idx, N):
     return df_point_cloud_with_normal
 
 def get_object_category(object_type):
+    """
+    Map KITTI 3D Object category to that of extracted classification dataset
+
+    Parameters
+    ----------
+    object_type: str
+        KITTI 3D Object category
+    
+    Returns
+    ----------
+    category: str
+        corresponding object category in extracted classification dataset
+
+    """
     category = 'vehicle'
 
     if object_type is None or object_type == 'Misc' or object_type == 'DontCare':
@@ -459,6 +504,23 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
     """
     Process one sample from KITTI 3D Object
 
+    Parameters
+    ----------
+    index: int
+        KITTI 3D Object measurement ID
+    input_dir: str
+        Root path of input KITTI 3D Object dataset
+    output_dir: str
+        Root path of extracted classification dataset
+    dataset_label: dict
+        label container for extracted classification dataset
+    debug: bool
+        debug mode selection. when activated the segmented object will be visualized using Open3D
+    
+    Returns
+    ----------
+    None
+
     """
     # load point cloud measurements:
     point_cloud = read_velodyne_bin(
@@ -523,6 +585,7 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
             idx_object = np.asarray(idx)[object_ids_ == object_id_]
 
             if debug:
+                # paint segmented objects as green:
                 np.asarray(segmented_objects.colors)[
                     idx_object, :
                 ] = [0.0, 1.0, 0.0]
@@ -542,6 +605,7 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
                     index=False, header=None
                 )
     if debug:
+        # visualize the segmented object on gray background:
         o3d.visualization.draw_geometries([segmented_ground, segmented_objects])
     else:
         # for segmented objects that don't have KITTI label, random sample and mark it as 'misc':
@@ -566,6 +630,24 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
             )
 
 def main(input_dir, output_dir, debug_index):
+    """
+    Process KITTI 3D Object
+
+    Parameters
+    ----------
+    input_dir: str
+        Root path of input KITTI 3D Object dataset
+    output_dir: str
+        Root path of extracted classification dataset
+    debug_index: int
+        for value < 0, process the whole dataset
+        otherwise process the selected instance in debug mode
+
+    Returns
+    ----------
+    None
+
+    """
     if debug_index < 0:
         N = len(
             glob.glob(
