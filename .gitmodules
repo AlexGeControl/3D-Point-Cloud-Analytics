@@ -10,3 +10,7 @@
 [submodule "workspace/assignments/06-deep-detection/apex"]
 	path = workspace/assignments/06-deep-detection/apex
 	url = https://github.com/NVIDIA/apex.git
+[submodule "workspace/assignments/project-01-kitti-detection-pipeline/pointnet++"]
+	path = workspace/assignments/project-01-kitti-detection-pipeline/pointnet++
+	url = https://github.com/dgriffiths3/pointnet2-tensorflow2.git
+	branch = master

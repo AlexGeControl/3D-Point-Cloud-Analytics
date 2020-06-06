@@ -79,6 +79,14 @@ From the above visualization it's obvious that the number of measurements will d
 
 ![Dataset Analytics, Measurement Count by Object Distance for ROI Selection](doc/dataset-analysis-measurement-count-distance-roi-selection.png)
 
+Sample visualization of the resampled object point clouds are as follows. The ROI is defined as the area **<= 25 meters** away from ego vehicle. The measurements of each point cloud is resampled to **64** points for efficient deep network processing. 
+
+Side View                |Top Down View
+:-------------------------:|:-------------------------:
+![Side View Vehicle](doc/resampling-vehicle-view-01.png)  |  ![Top Down View Vehicle](doc/resampling-vehicle-view-02.png)
+![Side View Pedestrian](doc/resampling-pedestrian-view-01.png)  |  ![Top Down View Pedestrian](doc/resampling-pedestrian-view-02.png)
+![Side View Cyclist](doc/resampling-cyclist-view-01.png)  |  ![Top Down View Cyclist](doc/resampling-cyclist-view-02.png)
+
 ---
 
 
