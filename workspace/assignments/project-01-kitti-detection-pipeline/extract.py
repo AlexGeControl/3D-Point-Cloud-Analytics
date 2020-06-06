@@ -306,7 +306,7 @@ def init_label():
         'ry':[]
     }
 
-def add_label(dataset_label, category, label, N):
+def add_label(dataset_label, category, label, N, center):
     """
     Add new label for extracted classification dataset
 
@@ -320,6 +320,8 @@ def add_label(dataset_label, category, label, N):
         one KITTI 3D Object label record as pandas Series
     N: int
         number of Velodyne measurements
+    center: numpy.ndarray
+        point cloud center as numpy.ndarray
 
     Returns
     ----------
@@ -332,12 +334,6 @@ def add_label(dataset_label, category, label, N):
         dataset_label[category]['truncated'].append(-1)
         dataset_label[category]['occluded'].append(-1)
 
-        # distance and num. of measurements:
-        dataset_label[category]['vx'].append(-1000)
-        dataset_label[category]['vy'].append(-1000)
-        dataset_label[category]['vz'].append(-1000)
-        dataset_label[category]['num_measurements'].append(N)
-
         # bounding box labels:
         dataset_label[category]['height'].append(-1)
         dataset_label[category]['width'].append(-1)
@@ -349,17 +345,19 @@ def add_label(dataset_label, category, label, N):
         dataset_label[category]['truncated'].append(label['truncated'])
         dataset_label[category]['occluded'].append(label['occluded'])
 
-        # distance and num. of measurements:
-        dataset_label[category]['vx'].append(label['vx'])
-        dataset_label[category]['vy'].append(label['vy'])
-        dataset_label[category]['vz'].append(label['vz'])
-        dataset_label[category]['num_measurements'].append(N)
-
         # bounding box labels:
         dataset_label[category]['height'].append(label['height'])
         dataset_label[category]['width'].append(label['width'])
         dataset_label[category]['length'].append(label['length'])
         dataset_label[category]['ry'].append(label['ry'])
+
+    # distance and num. of measurements:
+    dataset_label[category]['num_measurements'].append(N)
+    vx, vy, vz = center
+    dataset_label[category]['vx'].append(vx)
+    dataset_label[category]['vy'].append(vy)
+    dataset_label[category]['vz'].append(vz)
+
 
 def get_object_pcd_df(pcd, idx, N):
     """
@@ -596,7 +594,8 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
 
                 # add label:
                 category = get_object_category(label['type'])
-                add_label(dataset_label, category, label, N)
+                center = np.asarray(segmented_objects.points)[idx_object].mean(axis = 0)
+                add_label(dataset_label, category, label, N, center)
 
                 # write output:
                 dataset_index = len(dataset_label[category]['type'])
@@ -620,7 +619,8 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
 
             # add label:
             category = get_object_category(None)
-            add_label(dataset_label, category, None, N)
+            center = np.asarray(segmented_objects.points)[idx_object].mean(axis = 0)
+            add_label(dataset_label, category, None, N, center)
 
             # write output:
             dataset_index = len(dataset_label[category]['type'])
@@ -629,7 +629,7 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
                 index=False, header=None
             )
 
-def main(input_dir, output_dir, debug_index):
+def main(input_dir, output_dir, debug_index, num_limit):
     """
     Process KITTI 3D Object
 
@@ -670,7 +670,7 @@ def main(input_dir, output_dir, debug_index):
         index_errors = []
 
         for index in progressbar.progressbar(
-            range(N)
+            range(N if (num_limit is None) else min(num_limit, N))
         ):
             try:
                 process_sample(index, input_dir, output_dir, dataset_label, False)
@@ -721,6 +721,10 @@ def get_arguments():
         "-d", dest="debug_index", help="Sample index for debugging. Defaults to -1",
         required=False, type=int, default=-1
     )
+    optional.add_argument(
+        "-l", dest="num_limit", help="Maximum number of samples to be processed. Defaults to None.",
+        required=False, type=int, default=None
+    )
 
     # parse arguments:
     return parser.parse_args()
@@ -733,6 +737,6 @@ if __name__ == '__main__':
     # get dataset metadata:
     main(
         arguments.input, arguments.output,
-        arguments.debug_index
+        arguments.debug_index, arguments.num_limit
     )
 
