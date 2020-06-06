@@ -69,6 +69,10 @@ The above visualization shows that the dataset has a **significantly uneven clas
 * Perform data augmentation through random rotation along z-axis, etc, to introduct more training instances
 * Use focal loss for model optimization
 
+The class distribution after resampling is show below. After resampling the dataset is more evenly distributed.
+
+![Dataset Analytics, Resampled Class Distribution](doc/resampling-class-distribution.png)
+
 #### Influence of Distance on Measurement Density
 
 For efficient deep-learning network training, all input point clouds should be transformed to the same size. However, the number and density of lidar measurements is influenced by the object's distance to ego vehicle. So measurement count analytics must be performed before choosing FoV and input size.

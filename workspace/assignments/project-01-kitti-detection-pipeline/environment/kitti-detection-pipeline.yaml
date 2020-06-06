@@ -64,6 +64,7 @@ dependencies:
   - numpy-base=1.18.1=py38hde5b4d6_1
   - open3d=0.10.0.0=py38_0
   - openssl=1.1.1g=h7b6447c_0
+  - palettable=3.3.0=py_0
   - pandas=1.0.3=py38h0573a6f_0
   - pandoc=2.2.3.2=0
   - pandocfilters=1.4.2=py38_1
@@ -86,6 +87,8 @@ dependencies:
   - pyzmq=18.1.1=py38he6710b0_0
   - qt=5.9.7=h5867ecd_1
   - readline=8.0=h7b6447c_0
+  - scipy=1.4.1=py38h0b6359f_0
+  - seaborn=0.10.1=py_0
   - send2trash=1.5.0=py38_0
   - setuptools=46.4.0=py38_0
   - sip=4.19.13=py38he6710b0_0
@@ -105,6 +108,35 @@ dependencies:
   - zipp=3.1.0=py_0
   - zlib=1.2.11=h7b6447c_3
   - pip:
+    - absl-py==0.9.0
+    - astunparse==1.6.3
+    - cachetools==4.1.0
+    - chardet==3.0.4
+    - gast==0.3.3
+    - google-auth==1.16.1
+    - google-auth-oauthlib==0.4.1
+    - google-pasta==0.2.0
+    - grpcio==1.29.0
+    - h5py==2.10.0
+    - idna==2.9
+    - keras-preprocessing==1.1.2
+    - markdown==3.2.2
+    - oauthlib==3.1.0
+    - opt-einsum==3.2.1
     - progressbar2==3.51.3
+    - protobuf==3.12.2
+    - pyasn1==0.4.8
+    - pyasn1-modules==0.2.8
     - python-utils==2.4.0
+    - requests==2.23.0
+    - requests-oauthlib==1.3.0
+    - rsa==4.0
+    - tensorboard==2.2.2
+    - tensorboard-plugin-wit==1.6.0.post3
+    - tensorflow-estimator==2.2.0
+    - tensorflow-gpu==2.2.0rc2
+    - termcolor==1.1.0
+    - urllib3==1.25.9
+    - werkzeug==1.0.1
+    - wrapt==1.12.1
 prefix: /opt/conda/envs/kitti-detection-pipeline

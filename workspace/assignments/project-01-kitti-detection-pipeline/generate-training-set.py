@@ -59,7 +59,7 @@ def load_labels(input_dir):
 
     return labels
 
-def draw_class_distribution(labels):
+def draw_class_distribution(labels, object_type):
     """
     Visualize class distribution
 
@@ -67,6 +67,8 @@ def draw_class_distribution(labels):
     ----------
     labels: dict of pandas.DataFrame
         labels of the extracted dataset
+    object_type: str
+        object type for graph title display
 
     Returns
     ----------
@@ -76,7 +78,10 @@ def draw_class_distribution(labels):
     # generate category counts:
     categories, counts = zip(
         *[
-            (category.upper(), labels[category].shape[0]) for category in labels
+            (
+                category.upper(), 
+                labels[category] if type(labels[category]) is int else labels[category].shape[0]
+            ) for category in labels
         ]
     )
 
@@ -96,7 +101,7 @@ def draw_class_distribution(labels):
             (0,0), 0.7, color='white'
         )
     )
-    plt.title('Class Distribution, Segmented Objects')
+    plt.title(f'Class Distribution, {object_type} Objects')
     plt.show()
 
 def draw_measurement_count(labels):
@@ -313,7 +318,7 @@ def generate_training_set(labels, input_dir, output_dir, max_radius_distance, nu
                 continue
 
             # for each object measurement, preprocess it:
-            for _ in ([None] if up_sampling_ratio <= 1 else [None] + range(up_sampling_ratio)):
+            for _ in ([None] if up_sampling_ratio <= 1 else ([None] + list(range(up_sampling_ratio)))):
                 # random yaw between [-np.pi/4, +np.pi/4]:
                 yaw = np.pi / 4.0 * (2 * np.random.sample() - 1.0)
                 df_preprocessed_point_cloud_with_normal = preprocess(pcd_with_normal, num_sample_points, yaw, False)
@@ -334,6 +339,8 @@ def generate_training_set(labels, input_dir, output_dir, max_radius_distance, nu
     )
     for category in counts:
         print(f'\t{category.upper()}: {100.0 * counts[category] / total:.2f}% @ {counts[category]}')
+
+    return counts
 
 def get_arguments():
     """ 
@@ -389,7 +396,7 @@ if __name__ == '__main__':
     # 
     if arguments.mode == 'analyze':
         # visualization 01: category distribution
-        draw_class_distribution(labels)
+        draw_class_distribution(labels, object_type='Segmented')
 
         # visualization 02: distance -- measurement count
         draw_measurement_count(labels)
@@ -397,12 +404,14 @@ if __name__ == '__main__':
     # mode 02: generate training set for deep network
     # 
     elif arguments.mode == 'generate':
-        generate_training_set(
+        labels = generate_training_set(
             labels,
             arguments.input, arguments.output,
             arguments.max_radius_distance, arguments.num_sample_points
         )
-    #
+
+        draw_class_distribution(labels, object_type='Resampled')
+    #   
     # mode otherwise: the program should never reach here
     # 
     else:
