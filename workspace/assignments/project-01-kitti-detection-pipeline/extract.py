@@ -675,7 +675,7 @@ def main(input_dir, output_dir, debug_index, num_limit):
             try:
                 process_sample(index, input_dir, output_dir, dataset_label, False)
             except:
-                print(f'[KITTI Object Classification Preprocess]: Failed to process {index:06d}.txt')
+                print(f'[KITTI Object Classification Dataset ETL]: Failed to process {index:06d}.txt')
                 index_errors.append(index)
 
         # write metadata for feature engineering:
@@ -688,7 +688,7 @@ def main(input_dir, output_dir, debug_index, num_limit):
                 index=False
             )
         
-        print('[KITTI Object Classification Preprocess]: Failed to process the measurements below. Please inspect later.')
+        print('[KITTI Object Classification Dataset ETL]: Failed to process the measurements below. Please inspect later.')
         for index in index_errors:
             print(f'\t{index:06d}.txt')
     else:

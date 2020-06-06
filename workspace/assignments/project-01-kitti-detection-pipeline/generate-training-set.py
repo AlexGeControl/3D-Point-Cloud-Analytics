@@ -159,9 +159,10 @@ def get_arguments():
         required=True
     )
 
+    # add optional:
     optional.add_argument(
         "-m", dest="mode", help="Running mode. 'analyze' for dataset analytics and 'generate' for generation. Defaults to 'analyze'",
-        required=False, type=str, default="analyze"
+        required=False, type=str, choices=['analyze', 'generate'], default="analyze"
     )
 
     # parse arguments:
@@ -177,8 +178,22 @@ if __name__ == '__main__':
         arguments.input
     )
 
-    # visualization 01: category distribution
-    draw_class_distribution(labels)
+    #
+    # mode 01: analyze dataset metadata
+    # 
+    if arguments.mode == 'analyze':
+        # visualization 01: category distribution
+        draw_class_distribution(labels)
 
-    # visualization 02: distance -- measurement count
-    draw_measurement_count(labels)
+        # visualization 02: distance -- measurement count
+        draw_measurement_count(labels)
+    #
+    # mode 02: generate training set for deep network
+    # 
+    elif arguments.mode == 'generate':
+        pass
+    #
+    # mode otherwise: the program should never reach here
+    # 
+    else:
+        print(f'[KITTI Object Classification Dataset Generation]: Invalid mode {arguments.mode}')
