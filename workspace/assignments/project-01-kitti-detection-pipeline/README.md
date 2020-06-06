@@ -6,6 +6,8 @@ Python object detection pipeline on KITTI 3D Object dataset for Capstone Project
 
 ## Solution Guide
 
+---
+
 ### Build Object Classification Dataset from KITTI 3D Object
 
 Before deep learning model training, a high quality object classification dataset must be built out of the original KITTI 3D Object dataset. The ETL tool, implemented in Python, is available at (click to follow the link) **[/workspace/assignments/project-01-kitti-detection-pipeline/extract.py](extract.py)**
@@ -53,4 +55,30 @@ Camera View                |Lidar Pipeline View
 ![Sample 03 Camera View](doc/dataset-sample-03-camera-view.png)  |  ![Sample 03 Lidar Pipeline View](doc/dataset-sample-03-lidar-pipeline-view.png)
 
 --- 
+
+### Dataset Analytics before Deep Learning Modelling
+
+Before training the network, data quality check must be performed to minimize the effect of uneven class distribution, etc, on model building.
+
+#### Class Distribution
+
+![Dataset Analytics, Class Distribution](doc/dataset-analysis-class-distribution.png)
+
+The above visualization shows that the dataset has a **significantly uneven class distribution**. So measures must be taken to mitigate its effect on network training:
+
+* Perform data augmentation through random rotation along z-axis, etc, to introduct more training instances
+* Use focal loss for model optimization
+
+#### Influence of Distance on Measurement Density
+
+For efficient deep-learning network training, all input point clouds should be transformed to the same size. However, the number and density of lidar measurements is influenced by the object's distance to ego vehicle. So measurement count analytics must be performed before choosing FoV and input size.
+
+![Dataset Analytics, Measurement Count by Object Distance](doc/dataset-analysis-measurement-count-distance.png)
+
+From the above visualization it's obvious that the number of measurements will drop significantly as the object moves away from ego vehicle. Since for real autonomous driving system only object which lies inside local map matters, here objects which are too far away from ego vehicle will be filtered out from the training set. The threshold can be determined using the local visualization below
+
+![Dataset Analytics, Measurement Count by Object Distance for ROI Selection](doc/dataset-analysis-measurement-count-distance-roi-selection.png)
+
+---
+
 

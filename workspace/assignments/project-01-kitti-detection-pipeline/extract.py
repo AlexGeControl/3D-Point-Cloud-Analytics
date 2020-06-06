@@ -620,7 +620,7 @@ def process_sample(index, input_dir, output_dir, dataset_label, debug):
 
             # add label:
             category = get_object_category(None)
-            add_label(dataset_label, category, label, N)
+            add_label(dataset_label, category, None, N)
 
             # write output:
             dataset_index = len(dataset_label[category]['type'])
@@ -697,7 +697,7 @@ def main(input_dir, output_dir, debug_index):
 
 def get_arguments():
     """ 
-    Get command-line arguments
+    Get command-line arguments for KITTI 3D Object ETL
 
     """
     # init parser:
