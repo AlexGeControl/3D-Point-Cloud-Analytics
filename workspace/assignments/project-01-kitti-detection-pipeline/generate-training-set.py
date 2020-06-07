@@ -18,6 +18,7 @@ import numpy as np
 import scipy
 import pandas as pd
 import open3d as o3d
+from sklearn.model_selection import StratifiedShuffleSplit
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -342,6 +343,73 @@ def generate_training_set(labels, input_dir, output_dir, max_radius_distance, nu
 
     return counts
 
+def generate_train_test_split(input_dir):
+    """
+    Generate train-test split
+
+    Parameters
+    ----------
+    input_dir: str
+        Root path of resampled training set
+
+    Returns
+    ----------
+    None
+
+    """
+    # init:
+    X = []
+    y = []
+
+    regex_parser = re.compile(r'.+/([a-z]+)/(\d{6})\.txt$')
+    for filename in glob.glob(
+        os.path.join(input_dir, '*', '*.txt')
+    ):  
+        # parse fields:
+        fields = regex_parser.match(filename)
+        category, idx = fields.group(1), fields.group(2)
+        
+        # add:
+        X.append(f'{category}_{idx}')
+        y.append(category)
+    
+    # format:
+    X = np.asarray(X)
+    y = np.asarray(y)
+
+    # generate train-test split using stratified shuffle split:
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
+    sss.get_n_splits(X, y)
+    for train_index, test_index in sss.split(X, y):
+        X_train, X_test = X[train_index], X[test_index]
+
+    # write split:
+    y_unique = np.unique(y)
+    pd.DataFrame(
+        data = y_unique,
+        index = np.arange(len(y_unique)),
+        columns = ['id']
+    ).to_csv(
+        os.path.join(input_dir, 'object_names.txt'),
+        index=False, header=None
+    )
+    pd.DataFrame(
+        data = X_train,
+        index = np.arange(len(X_train)),
+        columns = ['id']
+    ).to_csv(
+        os.path.join(input_dir, 'train.txt'),
+        index=False, header=None
+    )
+    pd.DataFrame(
+        data = X_test,
+        index = np.arange(len(X_test)),
+        columns = ['id']
+    ).to_csv(
+        os.path.join(input_dir, 'test.txt'),
+        index=False, header=None
+    )
+
 def get_arguments():
     """ 
     Get command-line arguments for object classification training set generation.
@@ -404,13 +472,18 @@ if __name__ == '__main__':
     # mode 02: generate training set for deep network
     # 
     elif arguments.mode == 'generate':
-        labels = generate_training_set(
+        # resample:
+        counts = generate_training_set(
             labels,
             arguments.input, arguments.output,
             arguments.max_radius_distance, arguments.num_sample_points
         )
 
-        draw_class_distribution(labels, object_type='Resampled')
+        # visualize class distribution on the resampled dataset:
+        draw_class_distribution(counts, object_type='Resampled')
+
+        # generate train-test split:
+        generate_train_test_split(arguments.output)
     #   
     # mode otherwise: the program should never reach here
     # 

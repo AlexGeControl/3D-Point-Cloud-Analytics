@@ -32,6 +32,7 @@ dependencies:
   - ipywidgets=7.5.1=py_0
   - jedi=0.17.0=py38_0
   - jinja2=2.11.2=py_0
+  - joblib=0.15.1=py_0
   - jpeg=9b=h024ee3a_2
   - jsonschema=3.2.0=py38_0
   - jupyter_client=6.1.3=py_0
@@ -87,6 +88,7 @@ dependencies:
   - pyzmq=18.1.1=py38he6710b0_0
   - qt=5.9.7=h5867ecd_1
   - readline=8.0=h7b6447c_0
+  - scikit-learn=0.22.1=py38hd81dba3_0
   - scipy=1.4.1=py38h0b6359f_0
   - seaborn=0.10.1=py_0
   - send2trash=1.5.0=py38_0

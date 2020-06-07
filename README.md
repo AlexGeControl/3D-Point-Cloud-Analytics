@@ -49,7 +49,18 @@ Config port mappings for supervisord monitor and VNC client access in **docker-c
 
 ### Launch VNC Instance
 ```bash
+# for cpu environment, launch with docker-compose:
 docker-compose up workspace-vnc
+# for gpu environment, launch with nvidia-docker:
+docker run \
+  --gpus all \
+  -v ${PWD}/workspace/assignments:/workspace/assignments \
+  -v ${PWD}/workspace/data:/workspace/data \
+  # ports:
+  -p 49001:9001 \
+  -p 45901:5900 \
+  -p 46006:6006 \
+  --name point_cloud_analytics_workspace anaconda/point-cloud-analysis:bionic-gpu-current
 ```
 
 ### Health Check
