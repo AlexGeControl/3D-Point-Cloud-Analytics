@@ -8,7 +8,7 @@ Python implementation of Fast Point Feature Histogram(FPFH) and Signature Histog
 
 The solution has been tested using **bionic-gpu**. Please follow the instruction in repo root to build and run the docker instance.
 
-The Anaconda environment is avaiable at (click to follow the link) **[/workspace/assignments/07-feature-detection/environment/feature-detection.yaml](feature-detection.yaml)**
+The Anaconda environment is avaiable at (click to follow the link) **[/workspace/assignments/08-feature-description/environment/feature-description.yaml](feature-detection.yaml)**
 ---
 
 ## Homework Solution
