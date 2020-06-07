@@ -93,4 +93,67 @@ Side View                |Top Down View
 
 ---
 
+### Object Classification Network
+
+PointNet++ with focal loss is used as object classification network.
+
+#### Up & Running
+
+Run the following commands to train the network on the resampled dataset:
+
+```bash
+# go to workspace:
+cd /workspace/assignments/project-01-kitti-detection-pipeline/pointnet++
+# activate environment:
+conda activate kitti-detection-pipeline
+# compile pointnet++ laysers:
+tf_ops/compile_ops.sh
+# train the network on the resampled dataset:
+./train_modelnet.py
+# visualize training loss on Tensorboard:
+tensorboard --logdir=logs --bind_all --port=6006
+```
+
+After this the training loss can be monitored inside local browser at http://localhost:46006/
+
+#### Training
+
+The loss and categorical accuracy as training goes are shown below:
+
+<img src="doc/training-loss.png" alt="Training-Loss">
+
+<img src="doc/training-accuracy.png" alt="Training-Accuracy">
+
+It can be read from the graph that **the categorical accuracy on validation set is around 0.96**
+
+#### Testing
+
+First is the classification report from sklearn:
+
+```bash
+              precision    recall  f1-score   support
+
+     cyclist       0.97      0.97      0.97      1600
+        misc       0.90      0.80      0.84      1157
+  pedestrian       0.96      0.97      0.96      2225
+     vehicle       0.95      0.98      0.96      3034
+
+    accuracy                           0.95      8016
+   macro avg       0.94      0.93      0.93      8016
+weighted avg       0.95      0.95      0.95      8016
+```
+
+And the confusion matrix:
+
+<img src="doc/training-confusion-matrix.png" alt="Training-Confusion Matrix">
+
+The following conclusions can be drawn from above data:
+
+* **The Trained Model Generalizes Very Well on Test Set** 
+
+    Because the categorical accuracy on validation and test sets are comparable.
+
+* **The Model's Performance Bottleneck is on the Misc Classes** 
+
+    The model has poor accuracies for misc class compared with the three types of traffic participants. This is caused by the great intrinsic variety of misc class due to its generation nature.
 
