@@ -42,7 +42,7 @@ def main(
     for i, r in progressbar.progressbar(
         registration_results.iterrows()
     ):
-        if i >= 3:
+        if i >= num_evaluations:
             exit(0)
         
         # parse point cloud index:
@@ -155,7 +155,7 @@ def get_arguments():
         '-n', dest='num_evaluations', help="Number of pairs to be processed for interactive estimation-evaluation.",
         required=False, type=int, default=3
     )
-    
+
     # parse arguments:
     return parser.parse_args()
 

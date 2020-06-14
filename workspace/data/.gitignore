@@ -8,3 +8,8 @@
 # kitti:
 !download-kitti.sh
 !download-kitti-3d-object-detection.sh
+# shenlanxueyuan, point cloud registration:
+!registration_dataset
+!registration_dataset/evaluate_rt.py
+!registration_dataset/reg_result_yaogefad.csv
+!registration_dataset/reg_result.csv
