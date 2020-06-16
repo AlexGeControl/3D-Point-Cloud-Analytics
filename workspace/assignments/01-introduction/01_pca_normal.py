@@ -1,4 +1,4 @@
-#!/opt/conda/envs/point-cloud/bin/python
+#!/opt/conda/envs/01-introduction/bin/python
 
 # 实现PCA分析和法向量计算，并加载数据集中的文件进行验证
 
@@ -12,12 +12,14 @@ from pyntcloud import PyntCloud
 def PCA(data, correlation=False, sort=True):
     """ Calculate PCA for given point cloud
 
-    Parameters:
+    Parameters
+    ----------
         data：点云，NX3的矩阵
         correlation：区分np的cov和corrcoef，不输入时默认为False
         sort: 特征值排序，排序是为了其他功能方便使用，不输入时默认为True
     
-    Returns:
+    Returns
+    ----------
         eigenvalues：特征值
         eigenvectors：特征向量
     """
@@ -48,11 +50,13 @@ def PCA(data, correlation=False, sort=True):
 def get_pca_o3d(w, v, points):
     """ Build open3D geometry for PCA
 
-    Parameters:
+    Parameters
+    ----------
         w: eigenvalues in descending order
         v: eigenvectors in descending order
     
-    Returns:
+    Returns
+    ----------
         pca_set: o3d line set for pca visualization
     """
     # calculate centroid & variation along main axis:
@@ -103,12 +107,14 @@ def get_surface_normals(pcd, points, knn=5):
 def get_surface_normals_o3d(normals, points, scale=2):
     """ Build open3D geometry for surface normals
 
-    Parameters:
+    Parameters
+    ----------
         normals(numpy.ndarray): surface normals for each point
         points(pandas.DataFrame): points in the point cloud
         scale(float): the length of each surface normal vector
 
-    Returns:
+    Returns
+    ----------
         surface_normals_o3d: o3d line set for surface normal visualization
     """
     # total number of points:

@@ -1,4 +1,4 @@
-#!/opt/conda/envs/point-cloud-registration/bin/python
+#!/opt/conda/envs/09-point-cloud-registration/bin/python
 
 # main.py
 #     1. load point cloud in modelnet40 normal format
@@ -42,6 +42,7 @@ def main(
     for i, r in progressbar.progressbar(
         registration_results.iterrows()
     ):
+        # for interactive visualization:
         if i >= num_evaluations:
             exit(0)
         
@@ -116,6 +117,8 @@ def main(
             pcd_source_keypoints, pcd_target_keypoints, init_result.registration_result.correspondence_set,
             pcd_source, pcd_target, final_result.transformation
         )
+
+        # add result:
         io.add_to_output(df_output, idx_target, idx_source, final_result.transformation)
 
     # write output:

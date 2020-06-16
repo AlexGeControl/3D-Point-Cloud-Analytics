@@ -1,4 +1,4 @@
-#!/opt/conda/envs/feature-detection/bin/python
+#!/opt/conda/envs/07-feature-detection/bin/python
 
 # detect-iss.py
 #     1. load point cloud in modelnet40 normal format

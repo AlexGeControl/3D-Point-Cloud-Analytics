@@ -1,4 +1,4 @@
-#!/opt/conda/envs/point-cloud/bin/python
+#!/opt/conda/envs/03-clustering/bin/python
 
 # 文件功能：实现 GMM 算法
 
@@ -32,6 +32,10 @@ class GMM(object):
         ----------
         data: numpy.ndarray
             Training set as N-by-D numpy.ndarray
+
+        Returns
+        ----------
+        None
 
         """
         N, _ = data.shape
@@ -69,6 +73,11 @@ class GMM(object):
         ----------
         data: numpy.ndarray
             Testing set as N-by-D numpy.ndarray
+
+        Returns
+        ----------
+        result: numpy.ndarray
+            data labels as (N, ) numpy.ndarray
 
         """
         # get posteriori:

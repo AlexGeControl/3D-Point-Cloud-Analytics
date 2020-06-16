@@ -10,27 +10,31 @@ ENV HOME=/root SHELL=/bin/bash
 
 USER root
 
-# ------ PART 1: set CN package sources ------
+# ------ PART 1: set up sources & downloader ------
 
-# for Ubuntu:
-COPY ${PWD}/image/etc/apt/cn-bionic-sources.list /etc/apt/sources.list
-# COPY ${PWD}/image/etc/apt/sources.list.d/cn-bionic-cuda.list /etc/apt/sources.list.d/cuda.list
-# COPY ${PWD}/image/etc/apt/sources.list.d/cn-bionic-nvidia-ml.list /etc/apt/sources.list.d/nvidia-ml.list
+# remove default NVIDIA sources 
+# otherwise CUDA iwould be upgraded, which breaks the dependency of DL libs like Tensorflow and PyTorch:
 RUN rm -f /etc/apt/sources.list.d/*
-# for Python: 
+# use Ubuntu CN sources:
+COPY ${PWD}/image/etc/apt/sources.list /etc/apt/sources.list
+# use Python CN sources: 
 COPY ${PWD}/image/etc/pip.conf /root/.pip/pip.conf
-
-# ------ PART 2: install Ubuntu packages ------
 
 # install apt-fast:
 RUN apt-get update --fix-missing && \
-    apt-get install -y --no-install-recommends --allow-unauthenticated software-properties-common axel aria2 && \
+    apt-get install -y --no-install-recommends --allow-unauthenticated dirmngr gnupg2 software-properties-common axel aria2 && \
+    apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-keys 1EE2FF37CA8DA16B && \
     add-apt-repository ppa:apt-fast/stable && \
     apt-get update --fix-missing && \
-    apt-get install -y --no-install-recommends --allow-unauthenticated apt-fast
+    apt-get install -y --no-install-recommends --allow-unauthenticated apt-fast && \
+    rm -rf /var/lib/apt/lists/*
+
+# ------ PART 2: install Ubuntu packages ------
+
+# use apt-fast CN sources:
+COPY ${PWD}/image/etc/apt-fast.conf /etc/apt-fast.conf
 
 # install packages:
-ADD ${PWD}/image/etc/cn-bionic-apt-fast.conf /etc/apt-fast.conf
 RUN apt-fast update --fix-missing && \
     apt-fast install -y --no-install-recommends --allow-downgrades --allow-change-held-packages --allow-unauthenticated \
         curl grep sed dpkg wget bzip2 ca-certificates \
@@ -50,7 +54,9 @@ RUN apt-fast update --fix-missing && \
         libglib2.0-0 libxext6 libsm6 libxrender1 \
         dbus-x11 x11-utils \
         terminator \
+        # KITTI evaluation toolkit:
         gnuplot ghostscript \
+        # latex:
         texlive-extra-utils texlive-latex-extra \
         cmake libgoogle-glog-dev libatlas-base-dev libeigen3-dev libdw-dev \
         libpcl-dev && \
@@ -60,7 +66,7 @@ RUN apt-fast update --fix-missing && \
 
 # ------ PART 3: offline installs ------
 
-ADD ${PWD}/installers /tmp/installers
+COPY ${PWD}/installers /tmp/installers
 WORKDIR /tmp/installers
 
 # install tini:
@@ -77,7 +83,9 @@ RUN rm -rf /tmp/installers
 # ------ PART 4: set up VNC servers ------
 
 # config desktop & VNC servers:
-ADD image /
+COPY image /
+
+EXPOSE 80 5900 9001
 
 # ------ PART 5: set up conda environments ------
 
@@ -86,10 +94,15 @@ WORKDIR /workspace
 # keep conda updated to the latest version:
 RUN conda update conda
 
-# point cloud analytics:
-# ADD /home/yaoge/Workspace/3d-point-cloud-analytics/workspace/assignments/project-01-kitti-detection-pipeline/environment/kitti-detection-pipeline.yaml /workspace/
-#　RUN conda env create -f /workspace/kitti-detection-pipeline.yaml
+# create environments for assignments:
+COPY ${PWD}/environment environment
 
-EXPOSE 80 5900 9001
+# the common package will be shared. no duplicated installation at all.
+RUN conda env create -f environment/01-introduction.yaml && \
+    conda env create -f environment/02-nearest-neighbor.yaml && \ 
+    conda env create -f environment/03-clustering.yaml && \ 
+    conda env create -f environment/07-feature-detection.yaml && \
+    conda env create -f environment/08-feature-description.yaml && \ 
+    conda env create -f environment/09-point-cloud-registration.yaml
 
 ENTRYPOINT ["/startup.sh"]

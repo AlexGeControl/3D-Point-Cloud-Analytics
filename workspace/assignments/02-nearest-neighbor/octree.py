@@ -1,3 +1,5 @@
+#!/opt/conda/envs/02-nearest-neighbor/bin/python
+
 # octree implementation
 import random
 import math

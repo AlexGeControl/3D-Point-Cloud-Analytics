@@ -1,4 +1,4 @@
-#!/opt/conda/envs/point-cloud/bin/python
+#!/opt/conda/envs/03-clustering/bin/python
 
 # 文件功能： 实现 Spectral Clustering 算法
 
@@ -33,6 +33,10 @@ class SpectralClustering(object):
         data: numpy.ndarray
             Training set as N-by-D numpy.ndarray
 
+        Returns
+        ----------
+        None
+
         """
         # TODO 01: implement SpectralClustering fit 
         from sklearn.neighbors import kneighbors_graph
@@ -63,6 +67,16 @@ class SpectralClustering(object):
     def predict(self, data):
         """
         Get cluster labels
+
+        Parameters
+        ----------
+        data: numpy.ndarray
+            Testing set as N-by-D numpy.ndarray
+
+        Returns
+        ----------
+        result: numpy.ndarray
+            data labels as (N, ) numpy.ndarray
 
         """
         return np.copy(self.__labels)

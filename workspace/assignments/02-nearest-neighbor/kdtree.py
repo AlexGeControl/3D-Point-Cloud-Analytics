@@ -1,3 +1,5 @@
+#!/opt/conda/envs/02-nearest-neighbor/bin/python
+
 # kdtree implementation
 from collections import namedtuple
 import random

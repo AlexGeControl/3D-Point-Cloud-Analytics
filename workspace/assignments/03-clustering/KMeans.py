@@ -1,4 +1,4 @@
-#!/opt/conda/envs/point-cloud/bin/python
+#!/opt/conda/envs/03-clustering/bin/python
 
 # 文件功能： 实现 K-Means 算法
 
@@ -39,6 +39,10 @@ class KMeans(object):
         ----------
         data: numpy.ndarray
             Training set as N-by-D numpy.ndarray
+
+        Returns
+        ----------
+        None
 
         """
         # TODO 01: implement KMeans fit 
@@ -89,6 +93,11 @@ class KMeans(object):
         data: numpy.ndarray
             Testing set as N-by-D numpy.ndarray
 
+        Returns
+        ----------
+        matches: numpy.ndarray
+            potential matches as N-by-2 numpy.ndarray
+
         """
         # TODO 02: implement KMeans predict
         N, _ = data.shape
@@ -102,6 +111,16 @@ class KMeans(object):
     def get_centroids(self):
         """
         Get centroids
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        ----------
+        centroids: numpy.ndarray
+            cluster centroids as numpy.ndarray
+
         """
         return np.copy(self.__centroids)
 

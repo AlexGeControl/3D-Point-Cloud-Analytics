@@ -1,4 +1,4 @@
-#!/opt/conda/envs/point-cloud/bin/python
+#!/opt/conda/envs/03-clustering/bin/python
 
 # 文件功能：
 # 1. 生成模拟聚类数据
