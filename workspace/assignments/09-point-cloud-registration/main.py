@@ -11,7 +11,6 @@ import argparse
 import progressbar
 
 import numpy as np
-from scipy.spatial import KDTree
 import open3d as o3d
 
 # IO utils:
@@ -81,8 +80,8 @@ def main(
         )
 
         # generate matches:
-        distance_threshold_init = 2.5 * radius
-        distance_threshold_final = 2.5 * radius
+        distance_threshold_init = 1.5 * radius
+        distance_threshold_final = 1.5 * radius
 
         # RANSAC for initial estimation:
         init_result = ransac_match(
@@ -90,31 +89,28 @@ def main(
             fpfh_source_keypoints, fpfh_target_keypoints,    
             ransac_params = RANSACParams(
                 num_samples=4, 
-                max_correspondence_distance=distance_threshold_final,
+                max_correspondence_distance=distance_threshold_init,
                 max_iteration=100000, 
                 max_validation=500,
                 max_refinement=30
             ),
             checker_params = CheckerParams(
                 max_correspondence_distance=distance_threshold_init,
-                max_edge_length_ratio=0.8,
+                max_edge_length_ratio=0.9,
                 normal_angle_threshold=None
             )      
         )
 
         # exact ICP for refined estimation:
-        final_transform = exact_match(
+        final_result = exact_match(
             pcd_source, pcd_target, search_tree_target,
-            init_result.registration_result.transformation,
+            init_result.transformation,
             distance_threshold_final, 60
-        )
-        final_result = o3d.registration.evaluate_registration(
-            pcd_source, pcd_target, distance_threshold_final, final_transform
         )
 
         # visualize:
         visualize.show_registration_result(
-            pcd_source_keypoints, pcd_target_keypoints, init_result.registration_result.correspondence_set,
+            pcd_source_keypoints, pcd_target_keypoints, init_result.correspondence_set,
             pcd_source, pcd_target, final_result.transformation
         )
 

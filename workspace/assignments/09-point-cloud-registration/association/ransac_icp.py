@@ -2,7 +2,6 @@ import collections
 import copy
 
 import numpy as np
-from scipy.spatial import KDTree
 from scipy.spatial.distance import pdist
 import open3d as o3d
 
@@ -16,12 +15,6 @@ RANSACParams = collections.namedtuple(
 CheckerParams = collections.namedtuple(
     'CheckerParams', 
     ['max_correspondence_distance', 'max_edge_length_ratio', 'normal_angle_threshold']
-)
-
-# result:
-Result = collections.namedtuple(
-    'Result', 
-    ['num_iteration', 'num_validation', 'registration_result']
 )
 
 def get_potential_matches(feature_source, feature_target):
@@ -191,8 +184,8 @@ def exact_match(
 
     Returns
     ----------
-    T: numpy.ndarray
-        transform matrix as 4-by-4 numpy.ndarray
+    result: open3d.registration.RegistrationResult
+        Open3D registration result
 
     """
     # num. points in the source:
@@ -222,7 +215,12 @@ def exact_match(
             Q = np.asarray(pcd_target.points)[matches[:,1]]
             T = solve_icp(P, Q)
     
-    return T
+    # evaluate:
+    result = o3d.registration.evaluate_registration(
+        pcd_source, pcd_target, max_correspondence_distance, T
+    )
+
+    return result
 
 def ransac_match(
     pcd_source, pcd_target, 
@@ -245,7 +243,7 @@ def ransac_match(
 
     Returns
     ----------
-    best_result: Result
+    best_result: open3d.registration.RegistrationResult
         best matching result from RANSAC ICP
 
     """
@@ -285,26 +283,18 @@ def ransac_match(
             num_validation += 1
 
             # refine estimation on all keypoints:
-            T = exact_match(
+            result = exact_match(
                 pcd_source, pcd_target, search_tree_target,
                 T,
                 ransac_params.max_correspondence_distance, 
                 ransac_params.max_refinement
             )
 
-            result = Result(
-                num_iteration=(i+1), 
-                num_validation=num_validation,
-                registration_result=o3d.registration.evaluate_registration(
-                    pcd_source, pcd_target, ransac_params.max_correspondence_distance, T
-                )
-            )
-
             if best_result is None:
                 best_result = result
             
             # update best result:
-            best_result = best_result if best_result.registration_result.fitness > result.registration_result.fitness else result
+            best_result = best_result if best_result.fitness > result.fitness else result
 
             if num_validation == ransac_params.max_validation:
                 break
@@ -314,6 +304,7 @@ def ransac_match(
             np.random.choice(idx_matches, ransac_params.num_samples, replace=False)
         ]
 
+        # check validity:
         T = is_valid_match(
             pcd_source, pcd_target,
             proposal,
