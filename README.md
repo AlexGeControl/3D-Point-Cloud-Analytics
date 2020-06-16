@@ -177,6 +177,23 @@ On the system you can use
 
 to create a VNC session to connect to: http://[HOST_IP]:45901
 
-![VNC through VNC Client](doc/02-vnc-access-with-vnc-client.png)
+First, create a new VNC connection as follows. Make sure you have
+
+- Select the correct protocol `VNC`
+- Select the correct port on your local machine
+
+![Create New VNC Connection](doc/02-create-vnc-connection.png)
+
+When you enter the desktop, click the button to make the window fit to your screen:
+
+![Adjust Screen Display](doc/03-adjust-screen-display.png)
+
+Finally,
+
+![VNC through VNC Client](doc/04-virtual-desktop.png)
+
+*BE REVOLUTIONARY!* Keep Learning & Keep Programming! 
+
+Bonne Journée!
 
 ---
