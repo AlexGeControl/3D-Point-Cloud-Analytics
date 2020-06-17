@@ -192,7 +192,31 @@ Finally,
 
 ![VNC through VNC Client](doc/04-virtual-desktop.png)
 
-*BE REVOLUTIONARY!* Keep Learning & Keep Programming! 
+### Python Package Installation
+
+You can create new virtual environment using `conda` and install packages inside the environment using either `conda` or `pip`.
+
+#### Conda
+
+See Anaconda official tutorial.
+
+#### Pip
+
+Here `TsingHua source` is used for Python package index.
+
+##### Install Large Packages
+
+When you install large packages such as Tensorflow, use the following command to extend timeout:
+
+```bash
+pip install tensorflow-gpu==2.2.0 progressbar2 --default-timeout=1000
+```
+
+This command helps when you have unstable network connection.
+
+---
+
+***BE REVOLUTIONARY!* Keep Learning & Keep Programming!**
 
 Bonne Journée!
 
