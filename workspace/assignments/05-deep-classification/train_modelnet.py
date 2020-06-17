@@ -1,4 +1,4 @@
-#!/opt/conda/envs/deep-classification/bin/python
+#!/opt/conda/envs/05-deep-classification/bin/python
 
 import os
 import sys
