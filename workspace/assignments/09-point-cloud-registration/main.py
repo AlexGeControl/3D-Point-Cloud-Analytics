@@ -55,13 +55,13 @@ def main(
         pcd_source = io.read_point_cloud_bin(
             os.path.join(input_dir, 'point_clouds', f'{idx_source}.bin')
         )
-        # pcd_source, idx_inliers = pcd_source.remove_radius_outlier(nb_points=4, radius=radius)
+        pcd_source, idx_inliers = pcd_source.remove_radius_outlier(nb_points=4, radius=radius)
         search_tree_source = o3d.geometry.KDTreeFlann(pcd_source)
 
         pcd_target = io.read_point_cloud_bin(
             os.path.join(input_dir, 'point_clouds', f'{idx_target}.bin')
         )
-        # pcd_target, idx_inliers = pcd_target.remove_radius_outlier(nb_points=4, radius=radius)
+        pcd_target, idx_inliers = pcd_target.remove_radius_outlier(nb_points=4, radius=radius)
         search_tree_target = o3d.geometry.KDTreeFlann(pcd_target)
 
         # detect keypoints:
@@ -73,13 +73,13 @@ def main(
         fpfh_source_keypoints = o3d.registration.compute_fpfh_feature(
             pcd_source_keypoints, 
             o3d.geometry.KDTreeSearchParamHybrid(radius=5*radius, max_nn=100)
-        )
+        ).data
 
         pcd_target_keypoints = pcd_target.select_by_index(keypoints_target['id'].values)
         fpfh_target_keypoints = o3d.registration.compute_fpfh_feature(
             pcd_target_keypoints, 
             o3d.geometry.KDTreeSearchParamHybrid(radius=5*radius, max_nn=100)
-        )
+        ).data
 
         # generate matches:
         distance_threshold_init = 1.5 * radius
@@ -93,7 +93,7 @@ def main(
                 max_workers=5,
                 num_samples=4, 
                 max_correspondence_distance=distance_threshold_init,
-                max_iteration=100000, 
+                max_iteration=200000, 
                 max_validation=500,
                 max_refinement=30
             ),

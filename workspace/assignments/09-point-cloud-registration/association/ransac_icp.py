@@ -41,13 +41,13 @@ def get_potential_matches(feature_source, feature_target):
 
     """
     # build search tree on target features:
-    search_tree = o3d.geometry.KDTreeFlann(feature_target.data)
+    search_tree = o3d.geometry.KDTreeFlann(feature_target)
 
     # generate nearest-neighbor match for all the points in the source:
-    N = feature_source.num()
+    _, N = feature_source.shape
     matches = []
     for i in range(N):
-        query = feature_source.data[:, i]
+        query = feature_source[:, i]
         _, idx_nn_target, _ = search_tree.search_knn_vector_xd(query, 1)
         matches.append(
             [i, idx_nn_target[0]]
@@ -293,6 +293,7 @@ def ransac_match(
             validator, 
             proposal_generator
         ):
+            print(T)
             if not (T is None):
                 break
 
