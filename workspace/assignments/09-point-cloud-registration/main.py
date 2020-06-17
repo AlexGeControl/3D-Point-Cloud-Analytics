@@ -39,7 +39,9 @@ def main(
     df_output = io.init_output()
 
     for i, r in progressbar.progressbar(
-        registration_results.iterrows()
+        list(
+            registration_results.iterrows()
+        )
     ):
         # for interactive visualization:
         if i >= num_evaluations:
@@ -81,13 +83,14 @@ def main(
 
         # generate matches:
         distance_threshold_init = 1.5 * radius
-        distance_threshold_final = 1.5 * radius
+        distance_threshold_final = 1.0 * radius
 
         # RANSAC for initial estimation:
         init_result = ransac_match(
             pcd_source_keypoints, pcd_target_keypoints, 
             fpfh_source_keypoints, fpfh_target_keypoints,    
             ransac_params = RANSACParams(
+                max_workers=5,
                 num_samples=4, 
                 max_correspondence_distance=distance_threshold_init,
                 max_iteration=100000, 

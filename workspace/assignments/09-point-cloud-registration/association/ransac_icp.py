@@ -1,14 +1,20 @@
 import collections
 import copy
+import concurrent.futures
 
 import numpy as np
 from scipy.spatial.distance import pdist
+from scipy.spatial.transform import Rotation
 import open3d as o3d
 
 # RANSAC configuration:
 RANSACParams = collections.namedtuple(
     'RANSACParams',
-    ['num_samples', 'max_correspondence_distance', 'max_iteration', 'max_validation', 'max_refinement']
+    [
+        'max_workers',
+        'num_samples', 
+        'max_correspondence_distance', 'max_iteration', 'max_validation', 'max_refinement'
+    ]
 )
 
 # fast pruning algorithm configuration:
@@ -159,6 +165,12 @@ def is_valid_match(
 
     return T if is_valid_correspondence_distance else None
 
+def shall_terminate(result_curr, result_prev):
+    # relative fitness improvement:
+    relative_fitness_gain = result_curr.fitness / result_prev.fitness - 1
+
+    return relative_fitness_gain < 0.01
+
 def exact_match(
     pcd_source, pcd_target, search_tree_target,
     T,
@@ -191,6 +203,11 @@ def exact_match(
     # num. points in the source:
     N = len(pcd_source.points)
 
+    # evaluate relative change for early stopping:
+    result_prev = result_curr = o3d.registration.evaluate_registration(
+        pcd_source, pcd_target, max_correspondence_distance, T
+    )
+
     for _ in range(max_iteration):
         # TODO: transform is actually an in-place operation. deep copy first otherwise the result will be WRONG
         pcd_source_current = copy.deepcopy(pcd_source)
@@ -214,13 +231,18 @@ def exact_match(
             P = np.asarray(pcd_source.points)[matches[:,0]]
             Q = np.asarray(pcd_target.points)[matches[:,1]]
             T = solve_icp(P, Q)
-    
-    # evaluate:
-    result = o3d.registration.evaluate_registration(
-        pcd_source, pcd_target, max_correspondence_distance, T
-    )
 
-    return result
+            # evaluate:
+            result_curr = o3d.registration.evaluate_registration(
+                pcd_source, pcd_target, max_correspondence_distance, T
+            )
+
+            # if no significant improvement:
+            if shall_terminate(result_curr, result_prev):
+                print('[RANSAC ICP]: Early stopping.')
+                break
+
+    return result_curr
 
 def ransac_match(
     pcd_source, pcd_target, 
@@ -257,27 +279,38 @@ def ransac_match(
     N, _ = matches.shape
     idx_matches = np.arange(N)
 
-    num_validation = 0
+    T = None
     
-    T = None 
-    best_result = None
+    # proposal generator:
+    proposal_generator = (
+        matches[np.random.choice(idx_matches, ransac_params.num_samples, replace=False)] for _ in iter(int, 1)
+    )
+    # validator:
+    validator = lambda proposal: is_valid_match(pcd_source, pcd_target, proposal, checker_params)
 
-    # get at least one valid proposal:
-    while T is None:
-        # generate proposal:
-        proposal = matches[
-            np.random.choice(idx_matches, ransac_params.num_samples, replace=False)
-        ]
-        # check validity:
-        T = is_valid_match(
-            pcd_source, pcd_target,
-            proposal,
-            checker_params      
-        )
-    print('[RANSAC ICP]: Get valid proposal. Start registration...')
+    with concurrent.futures.ThreadPoolExecutor(max_workers=ransac_params.max_workers) as executor:            
+        for T in map(
+            validator, 
+            proposal_generator
+        ):
+            if not (T is None):
+                break
+
+    # set baseline:
+    print('[RANSAC ICP]: Get first valid proposal. Start registration...')
+    best_result = exact_match(
+        pcd_source, pcd_target, search_tree_target,
+        T,
+        ransac_params.max_correspondence_distance, 
+        ransac_params.max_refinement
+    )
 
     # RANSAC:
+    num_validation = 0
     for i in range(ransac_params.max_iteration):
+        # get proposal:
+        T = validator(next(proposal_generator))
+
         # check validity:
         if (not (T is None)) and (num_validation < ransac_params.max_validation):
             num_validation += 1
@@ -289,27 +322,12 @@ def ransac_match(
                 ransac_params.max_correspondence_distance, 
                 ransac_params.max_refinement
             )
-
-            if best_result is None:
-                best_result = result
             
             # update best result:
             best_result = best_result if best_result.fitness > result.fitness else result
 
             if num_validation == ransac_params.max_validation:
                 break
-
-        # generate proposal:
-        proposal = matches[
-            np.random.choice(idx_matches, ransac_params.num_samples, replace=False)
-        ]
-
-        # check validity:
-        T = is_valid_match(
-            pcd_source, pcd_target,
-            proposal,
-            checker_params      
-        )
 
     return best_result
 
