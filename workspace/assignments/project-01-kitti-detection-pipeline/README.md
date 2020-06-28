@@ -174,6 +174,66 @@ With the object classification network, the final object detection pipeline can 
 * Run **batch prediction** on the above resampled point clouds and get **object category and prediction confidence**.
 * Fit the cuboid using **Open3D axis aligned bounding box** in **Velodyne frame**, then transform to **camera frame** for **KITTI evaluation output**.
 
+The corresponding Python implementation is shown below:
+
+```python
+    # 0. generate I/O paths:
+    input_velodyne = os.path.join(dataset_dir, 'velodyne', f'{index:06d}.bin')
+    input_params = os.path.join(dataset_dir, 'calib', f'{index:06d}.txt')
+    output_label = os.path.join(dataset_dir, 'shenlan_pipeline_pred_2', 'data', f'{index:06d}.txt')
+
+    # 1. read Velodyne measurements and calib params:
+    point_cloud = measurement.read_measurements(input_velodyne)
+    param = measurement.read_calib(input_params)
+
+    # 2. segment ground and surrounding objects -- here discard intensity channel:
+    segmented_ground, segmented_objects, object_ids = segmentation.segment_ground_and_objects(point_cloud[:, 0:3])
+
+    # 3. predict object category using classification network:
+    config = {
+        # preprocess:
+        'max_radius_distance': max_radius_distance,
+        'num_sample_points': num_sample_points,
+        # predict:
+        'msg' : True,
+        'batch_size' : 16,
+        'num_classes' : 4,
+        'batch_normalization' : False,
+        'checkpoint_path' : 'logs/msg_1/model/weights.ckpt',
+    }
+    model = load_model(config)
+    predictions = predict(segmented_objects, object_ids, model, config)
+    
+    # TODO: refactor decoder implementation
+    decoder = KITTIPCDClassificationDataset(input_dir='/workspace/data/kitti_3d_object_classification_normal_resampled').get_decoder()
+
+    # debug mode:
+    if (debug_mode):
+        # print detection results:
+        for class_id in predictions:
+            # show category:
+            print(f'[{decoder[class_id]}]')
+            # show instances:
+            for object_id in predictions[class_id]:
+                print(f'\t[Object ID]: {object_id}, confidence {predictions[class_id][object_id]:.2f}')
+
+        # visualize:
+        bounding_boxes = visualization.get_bounding_boxes(
+            segmented_objects, object_ids, 
+            predictions, decoder
+        )
+        o3d.visualization.draw_geometries(
+            [segmented_ground, segmented_objects] + bounding_boxes
+        )
+    
+    # 4. format output for KITTI offline evaluation tool:
+    label = output.to_kitti_eval_format(
+        segmented_objects, object_ids, param,
+        predictions, decoder
+    )
+    label.to_csv(output_label, sep=' ', header=False, index=False)
+```
+
 #### Demos
 
 Camera View                |Lidar View
@@ -200,5 +260,17 @@ From the above visualization we can see that:
 * **Con: The Proposed Pipeline Cannot Distinguish The Wall from The Vehicle** 
 
     This is because the two type of objects have similar features, a dominant flat surface, when only lidar measurements are used. This can be mitigated by integrating features from visual sensors(for object category from visual texture) and radar sensors(for dynamic vehicles)
+
+---
+
+### Evaluation
+
+The full output from KITTI evaluation toolkit can be found here (click to follow the link) **[here](doc/evaluation-results)**. The three PR-curves for **Vehicle, Pedestrian and Cyclist** are shown below.
+
+<img src="doc/evaluation-results/car_detection.png" alt="mAP for Car, Point Pillars" width="100%">
+
+<img src="doc/evaluation-results/pedestrian_detection.png" alt="mAP for Pedestrian, Point Pillars" width="100%">
+
+<img src="doc/evaluation-results/cyclist_detection.png" alt="mAP for Cyclist, Point Pillars" width="100%">
 
 
