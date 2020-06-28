@@ -145,7 +145,7 @@ weighted avg       0.95      0.95      0.95      8016
 
 And the confusion matrix:
 
-<img src="doc/training-confusion-matrix.png" alt="Training-Confusion Matrix">
+<img src="doc/training-confusion-matrix.png" alt="Training-Confusion Matrix" width="100%">
 
 The following conclusions can be drawn from above data:
 
@@ -156,4 +156,49 @@ The following conclusions can be drawn from above data:
 * **The Model's Performance Bottleneck is on the Misc Classes** 
 
     The model has poor accuracies for misc class compared with the three types of traffic participants. This is caused by the great intrinsic variety of misc class due to its generation nature.
+
+---
+
+### Detection Pipeline
+
+#### Algorithm Workflow
+
+With the object classification network, the final object detection pipeline can be set up as follows:
+
+* First, perform **ground plane & object segmentation** on **Velodyne measurements**.
+* For each segmented **foreground object**, **preprocess** it according to **classification network input specification**. [click here](pointnet++/detect.py)
+    * Filter out objects with too few measurements;
+    * Filter object that is too far away from ego vehicle;
+    * Resample object point cloud according to classification network input specification;
+    * Substract mean to make the point cloud zero-centered.
+* Run **batch prediction** on the above resampled point clouds and get **object category and prediction confidence**.
+* Fit the cuboid using **Open3D axis aligned bounding box** in **Velodyne frame**, then transform to **camera frame** for **KITTI evaluation output**.
+
+#### Demos
+
+Camera View                |Lidar View
+:-------------------------:|:-------------------------:
+![Demo 01-Camera](doc/detection-sample-01--000008-camera-view.png)  |  ![Demo 01-Lidar](doc/detection-sample-01--000008-lidar-view.png)
+![Demo 02-Camera](doc/detection-sample-02--000032-camera-view.png)  |  ![Demo 02-Lidar](doc/detection-sample-02--000032-lidar-view.png)
+![Demo 03-Camera](doc/detection-sample-03--000336-camera-view.png)  |  ![Demo 03-Lidar](doc/detection-sample-03--000336-lidar-view.png)
+![Demo 04-Camera](doc/detection-sample-04--000342-camera-view.png)  |  ![Demo 04-Lidar](doc/detection-sample-04--000342-lidar-view.png)
+![Demo 05-Camera](doc/detection-sample-05--000383-camera-view.png)  |  ![Demo 05-Lidar](doc/detection-sample-05--000383-lidar-view.png)
+![Demo 06-Camera](doc/detection-sample-06--000614-camera-view.png)  |  ![Demo 06-Lidar](doc/detection-sample-06--000614-lidar-view.png)
+
+#### Discussions
+
+From the above visualization we can see that:
+
+* **Pro: The Proposed Pipeline Performs Very Well on Simple Cases** 
+
+    For object that is close enough to ego vehicle, which has dense enough measurements, the pipeline can detect the object very well. This can be seen in Demo 01 and 02 for foreground vehicles.
+
+* **Con: The Pipeline Cannot Distinguish Objects That Are Too Close To Each Other** 
+
+    This is caused by the simple regional proposal algorithm, DBSCAN. For a larger working range a larger clustering threshold must be used. However, this will cause small objects that are close to each other, like a group of pedestrians, to be clustered as a single group. This can be seen in Demo 03(`the two pedestrians`), 04(`the two pedestrians`) and 06(`the two cyclists`)
+
+* **Con: The Proposed Pipeline Cannot Distinguish The Wall from The Vehicle** 
+
+    This is because the two type of objects have similar features, a dominant flat surface, when only lidar measurements are used. This can be mitigated by integrating features from visual sensors(for object category from visual texture) and radar sensors(for dynamic vehicles)
+
 
