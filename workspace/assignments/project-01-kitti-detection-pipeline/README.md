@@ -265,12 +265,35 @@ From the above visualization we can see that:
 
 ### Evaluation
 
-The full output from KITTI evaluation toolkit can be found here (click to follow the link) **[here](doc/evaluation-results)**. The three PR-curves for **Vehicle, Pedestrian and Cyclist** are shown below.
+The full output from KITTI evaluation toolkit can be found here (click to follow the link) **[here](doc/evaluation-results)**. 
+
+The summary statistics from KITTI Evaluation Tool is as follows:
+
+```bash
+# car detection:
+car_detection AP: 52.398186 68.141006 69.044930
+# pedestrian detection:
+pedestrian_detection AP: 38.663311 40.115292 38.742714
+# cyclist detection:
+cyclist_detection AP: 37.225979 56.118141 53.791374
+```
+
+The three PR-curves for **Vehicle, Pedestrian and Cyclist** are shown below.
 
 <img src="doc/evaluation-results/car_detection.png" alt="mAP for Car, Point Pillars" width="100%">
 
 <img src="doc/evaluation-results/pedestrian_detection.png" alt="mAP for Pedestrian, Point Pillars" width="100%">
 
 <img src="doc/evaluation-results/cyclist_detection.png" alt="mAP for Cyclist, Point Pillars" width="100%">
+
+#### Discussions
+
+* **The Pipeline Could Only Be Used as A Baseline Solution** 
+
+    Due to the limit of lidar measurements, objects of similar shape cannot be effectively distinguished from each other. This is the root cause of the performance bottleneck.
+
+* **However This is a PERFECT WRAP UP for the Course** 
+
+    It really deepened my understanding of the whole object detection worklflow and the corresponding KPI metrics implementation. Thank you dear teacher & ShenLanXueYuan! All the best!
 
 

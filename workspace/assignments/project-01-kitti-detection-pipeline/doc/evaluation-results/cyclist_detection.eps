@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0 EPSF-2.0
 %%Title: cyclist_detection.eps
-%%Creator: gnuplot 5.0 patchlevel 3
-%%CreationDate: Sun May 24 15:25:08 2020
+%%Creator: gnuplot 5.2 patchlevel 2
+%%CreationDate: Mon Jun 29 04:33:24 2020
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 410 302
 %%EndComments
@@ -429,15 +429,27 @@ Level1 {Level1PatternFill} {Level2PatternFill} ifelse
 dup length dict begin {1 index /FID eq {pop pop} {def} ifelse} forall
 currentdict end definefont pop
 %
+/Metrics {ExtendTextBox Gswidth} def
+/Lwidth {currentpoint stroke M 0 vshift R Metrics} def
+/Rwidth {currentpoint stroke M dup stringwidth pop neg vshift R Metrics} def
+/Cwidth {currentpoint stroke M dup stringwidth pop -2 div vshift R Metrics} def
+/GLwidth {currentpoint stroke M 0 vshift R {ExtendTextBox} forall} def
+/GRwidth {currentpoint stroke M dup Gwidth vshift R {ExtendTextBox} forall} def
+/GCwidth {currentpoint stroke M dup Gwidth 2 div vshift R {ExtendTextBox} forall} def
+/GLwidth2 {0 Gwidth AddGlyphWidth} def
+/GRwidth2 {Gwidth -1 mul 0 AddGlyphWidth} def
+/GCwidth2 {Gwidth 2 div dup -1 mul AddGlyphWidth} def
+/AddGlyphWidth { dup TBx2 gt {userdict /TBx2 3 -1 roll put} {pop} ifelse
+                 dup TBx1 lt {userdict /TBx1 3 -1 roll put} {pop} ifelse } def
 /MFshow {
    { dup 5 get 3 ge
      { 5 get 3 eq {gsave} {grestore} ifelse }
      {dup dup 0 get findfont exch 1 get scalefont setfont
      [ currentpoint ] exch dup 2 get 0 exch R dup 5 get 2 ne {dup dup 6
-     get exch 4 get {textshow} {stringwidth pop 0 R} ifelse }if dup 5 get 0 eq
+     get exch 4 get {textshow} {Metrics pop 0 R} ifelse }if dup 5 get 0 eq
      {dup 3 get {2 get neg 0 exch R pop} {pop aload pop M} ifelse} {dup 5
-     get 1 eq {dup 2 get exch dup 3 get exch 6 get stringwidth pop -2 div
-     dup 0 R} {dup 6 get stringwidth pop -2 div 0 R 6 get
+     get 1 eq {dup 2 get exch dup 3 get exch 6 get Gswidth pop -2 div
+     dup 0 R} {dup 6 get Gswidth pop -2 div 0 R 6 get
      textshow 2 index {aload pop M neg 3 -1 roll neg R pop pop} {pop pop pop
      pop aload pop M} ifelse }ifelse }ifelse }
      ifelse }
@@ -466,42 +478,39 @@ systemdict /pdfmark known not {
 SDict begin [
   /Title (cyclist_detection.eps)
   /Subject (gnuplot plot)
-  /Creator (gnuplot 5.0 patchlevel 3)
-  /Author (root)
+  /Creator (gnuplot 5.2 patchlevel 2)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Sun May 24 15:25:08 2020)
+  /CreationDate (Mon Jun 29 04:33:24 2020)
   /DOCINFO pdfmark
 end
 } ifelse
 %
-% Support for boxed text - Ethan A Merritt May 2005
+% Support for boxed text - Ethan A Merritt Sep 2016
 %
 /InitTextBox { userdict /TBy2 3 -1 roll put userdict /TBx2 3 -1 roll put
            userdict /TBy1 3 -1 roll put userdict /TBx1 3 -1 roll put
 	   /Boxing true def } def
-/ExtendTextBox { Boxing
-    { gsave dup false charpath pathbbox
+/ExtendTextBox { dup type /stringtype eq
+    { Boxing { gsave dup false charpath pathbbox
       dup TBy2 gt {userdict /TBy2 3 -1 roll put} {pop} ifelse
       dup TBx2 gt {userdict /TBx2 3 -1 roll put} {pop} ifelse
       dup TBy1 lt {userdict /TBy1 3 -1 roll put} {pop} ifelse
       dup TBx1 lt {userdict /TBx1 3 -1 roll put} {pop} ifelse
-      grestore } if } def
+      grestore } if }
+    {} ifelse} def
 /PopTextBox { newpath TBx1 TBxmargin sub TBy1 TBymargin sub M
                TBx1 TBxmargin sub TBy2 TBymargin add L
 	       TBx2 TBxmargin add TBy2 TBymargin add L
 	       TBx2 TBxmargin add TBy1 TBymargin sub L closepath } def
 /DrawTextBox { PopTextBox stroke /Boxing false def} def
-/FillTextBox { gsave PopTextBox 1 1 1 setrgbcolor fill grestore /Boxing false def} def
+/FillTextBox { gsave PopTextBox fill grestore /Boxing false def} def
 0 0 0 0 InitTextBox
 /TBxmargin 20 def
 /TBymargin 20 def
 /Boxing false def
 /textshow { ExtendTextBox Gshow } def
 %
-% redundant definitions for compatibility with prologue.ps older than 5.0.2
-/LTB {BL [] LCb DL} def
-/LTb {PL [] LCb DL} def
 end
 %%EndProlog
 %%Page: 1 1
@@ -663,7 +672,7 @@ Z stroke
 LTb
 LCb setrgbcolor
 LCb setrgbcolor
-376 2539 M
+396 2539 M
 currentpoint gsave translate -270 rotate 0 0 moveto
 [ [(Helvetica) 200.0 0.0 true true 0 (Precision)]
 ] -66.7 MCshow
@@ -689,10 +698,7 @@ LTb
 LTb
 0.58 0.00 0.83 C 5840 4276 M
 543 0 V
-1196 4439 M
-136 0 V
-135 0 V
-136 -63 V
+1196 2770 M
 136 0 V
 135 0 V
 136 0 V
@@ -707,17 +713,20 @@ LTb
 136 0 V
 136 0 V
 135 0 V
-136 -25 V
-136 -23 V
-136 -13 V
+136 0 V
+136 0 V
 135 0 V
-136 -84 V
-136 -228 V
-135 -335 V
-136 -321 V
-136 -93 V
-135 -516 V
-136 -522 V
+136 0 V
+136 0 V
+136 0 V
+135 0 V
+136 0 V
+136 -181 V
+135 -116 V
+136 -299 V
+136 -218 V
+135 -323 V
+136 -48 V
 5131 640 L
 135 0 V
 136 0 V
@@ -742,29 +751,7 @@ LTb
 LTb
 0.00 0.62 0.45 C 5840 4076 M
 543 0 V
-1196 4439 M
-136 0 V
-135 -55 V
-136 0 V
-136 0 V
-135 0 V
-136 0 V
-136 0 V
-135 0 V
-136 0 V
-136 0 V
-135 -44 V
-136 -5 V
-136 0 V
-135 -86 V
-136 -254 V
-136 -354 V
-135 -317 V
-136 -408 V
-136 -380 V
-136 -622 V
-135 -851 V
-4181 640 L
+1196 3206 M
 136 0 V
 135 0 V
 136 0 V
@@ -780,6 +767,28 @@ LTb
 136 0 V
 135 0 V
 136 0 V
+136 0 V
+135 0 V
+136 0 V
+136 0 V
+136 0 V
+135 0 V
+136 0 V
+136 0 V
+135 0 V
+136 0 V
+136 0 V
+135 -71 V
+136 0 V
+136 -57 V
+135 -120 V
+136 -160 V
+136 -227 V
+135 -135 V
+136 -434 V
+136 -193 V
+135 -109 V
+6216 640 L
 136 0 V
 135 0 V
 136 0 V
@@ -795,28 +804,9 @@ LTb
 LTb
 0.34 0.71 0.91 C 5840 3876 M
 543 0 V
-1196 4439 M
-136 0 V
-135 -55 V
-136 0 V
+1196 3232 M
 136 0 V
 135 0 V
-136 0 V
-136 0 V
-135 0 V
-136 0 V
-136 -44 V
-135 -4 V
-136 0 V
-136 -82 V
-135 -248 V
-136 -324 V
-136 -328 V
-135 -402 V
-136 -525 V
-136 -662 V
-136 -741 V
-4045 640 L
 136 0 V
 136 0 V
 135 0 V
@@ -832,6 +822,25 @@ LTb
 136 0 V
 136 0 V
 135 0 V
+136 0 V
+136 0 V
+136 0 V
+135 0 V
+136 0 V
+136 0 V
+135 0 V
+136 0 V
+136 0 V
+135 -65 V
+136 -52 V
+136 -84 V
+135 -195 V
+136 -111 V
+136 -226 V
+135 -417 V
+136 -239 V
+136 -111 V
+6080 640 L
 136 0 V
 136 0 V
 135 0 V
