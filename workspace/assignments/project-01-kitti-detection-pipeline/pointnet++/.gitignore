@@ -1,0 +1,7 @@
+*.so
+*.cu.o
+*.pyc
+*tfrecord
+logs/
+.DS_Store*
+__pycache__/
