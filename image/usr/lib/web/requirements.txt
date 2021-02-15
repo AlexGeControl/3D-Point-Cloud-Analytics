@@ -11,7 +11,7 @@ gevent-websocket==0.9.3
 greenlet==0.4.5
 itsdangerous==0.24
 peewee==2.4.1
-requests==2.4.3
+requests==2.20.0
 six==1.8.0
 websocket-client==0.21.0
 wsgiref==0.1.2
