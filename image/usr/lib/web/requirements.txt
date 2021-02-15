@@ -1,4 +1,4 @@
-Flask==0.10.1
+Flask==1.0
 Flask-Login==0.2.11
 Jinja2==2.7.3
 MarkupSafe==0.23
