@@ -26,6 +26,6 @@ tensorboard-plugin-wit==1.6.0.post3
 tensorflow-estimator==2.2.0
 tensorflow-gpu==2.2.0rc2
 termcolor==1.1.0
-urllib3==1.25.9
+urllib3==1.26.5
 werkzeug==1.0.1
 wrapt==1.12.1
