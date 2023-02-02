@@ -2,7 +2,7 @@ Flask==0.10.1
 Flask-Login==0.2.11
 Jinja2==2.7.3
 MarkupSafe==0.23
-Werkzeug==0.9.6
+Werkzeug==0.15.5
 argparse==1.2.1
 backports.ssl-match-hostname==3.5.0.1
 docker-py==0.5.3
